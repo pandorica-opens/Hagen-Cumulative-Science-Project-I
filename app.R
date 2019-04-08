@@ -19,6 +19,7 @@ etd <- as.data.frame(read.csv(text = gsheet2text(url, format = 'csv'), stringsAs
 #add clickable icons with link to the paper
 link_icon<-as.character(img(src="pdf-3.png", height="13px", width="13px"))
 etd$Link.to.the.paper <- paste0("<a href='",etd$Link.to.the.paper,"' target='_blank'>",link_icon,"</a>")
+etd$Link.to.the.OSF.Project <- paste0("<a href='",etd$Link.to.the.OSF.Project,"' target='_blank'>",link_icon,"</a>")
 
 #print(etd$Link.to.the.paper)
 #authors <- etd[,c("Auhors")]
@@ -108,7 +109,7 @@ ui<-navbarPage(
      )
    ),
 
-  # 1) figure out the ligic of the prot and nice way of presenting it
+  # 1) figure out the logic of the prot and nice way of presenting it
   #
   #
   
@@ -183,8 +184,9 @@ server <- function(input, output, session) {
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
   
   # when is this reactive value used???
-  new_etd <- etd [,c("Title","Link.to.the.paper") ]
-  #print(new_etd)
+  #new_etd <- etd [,c("Title","Link.to.the.paper") ]
+  new_etd <- etd
+  #print(new_etd["Link.to.the.paper"])
   
   # filtered_content<- reactive({
   # 
@@ -226,7 +228,7 @@ server <- function(input, output, session) {
                        # list(width= "500px", targets=c(5)),
                        list(visible=FALSE, targets=c(0)),
                        list(
-                         #targets = c(1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17), ------change this for prev version 
+                         targets = c(1,3,4,5,6,9,10,11,12,13,14,15,16,17), #change this and line 186 to see part of the table
                          render = JS(
                            "function(data, type, row, meta) {",
                            "return type === 'display' && data.length > 40 ?",
