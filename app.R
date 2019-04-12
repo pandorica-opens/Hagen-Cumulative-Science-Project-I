@@ -40,6 +40,18 @@ replicated_effect_size_y_zus = seq(from=1, to=length(replicated_effect_size)*3, 
 original_effect_size_y = seq(1, length(original_effect_size))
 replicated_effect_size_y = seq(1, length(replicated_effect_size))
 
+#Load the Codebook with additional Info about the columns of the dataset: Order,TopCategory, SubCategory, Variable, Clear.Variable.Name, Definitions,
+url_codebook<-'https://docs.google.com/spreadsheets/d/1f5QYC1F-Pd2v9N4DU6Yf29jdKPhOzdad6B2GDhWoVjM/edit?usp=sharing'
+codebook<-as.data.frame(read.csv(text = gsheet2text(url_codebook, format = 'csv'), stringsAsFactors = FALSE))
+codebook <- subset(codebook, !is.na(Order) & Clear.Variable.Name != "")
+
+#replace the column names with the
+etd.column.names<-as.vector(codebook$Clear.Variable.Name)
+colnames(etd)<-etd.column.names
+
+#print(colnames(etd))
+
+
 ui<-navbarPage(
   title="Hagen Cumulative Science Project I",
   fluid=TRUE,
@@ -90,11 +102,6 @@ ui<-navbarPage(
            
   ),
 
-  # problem with Database:
-  # 1)the table is too wide, but the titles are still not shown fully
-  # 2) maybe make the titles in 2 rows (so all the titled would be seen) + Year + Authors
-  # everything else would be in the external bar
-  # 3) look up completely different layout for the google docs file
 
   tabPanel(title="Database",
                    
@@ -109,24 +116,21 @@ ui<-navbarPage(
      )
    ),
 
-  # 1) figure out the logic of the plot and nice way of presenting it
-  #
-  #
   
   tabPanel(title="Plotting",
-    sidebarPanel(
-      sliderInput("Effect.size.Replication", "Effect Size Replication", 0.0, 1.0, value = c(0.0, 1.0),
-                  sep = ""),
-      # those variables - "Effect.size.Replication" - "Effect.size.Original" 
-      # at this point doesn't mean anything because they are not reactive, thus the plot is 
-      # not getting changed after we change the variable; we have to do it from server side to get a
-      # respond here
-      # also good idea to get the values by giving a max and min of the measuarements, and
-      # not the fixed values like 0.0, 4.9, 0.0, 1.0
-      
-      sliderInput("Effect.size.Original", "Effect Size Original", 0.0, 4.9, value = c(0.0, 1.5),
-                  sep = "")
-    ),
+    # sidebarPanel(
+    #   # sliderInput("Effect.size.Replication", "Effect Size Replication", 0.0, 1.0, value = c(0.0, 1.0),
+    #   #             sep = ""),
+    #   # # those variables - "Effect.size.Replication" - "Effect.size.Original" 
+    #   # # at this point doesn't mean anything because they are not reactive, thus the plot is 
+    #   # # not getting changed after we change the variable; we have to do it from server side to get a
+    #   # # respond here
+    #   # # also good idea to get the values by giving a max and min of the measuarements, and
+    #   # # not the fixed values like 0.0, 4.9, 0.0, 1.0
+    #   # 
+    #   # sliderInput("Effect.size.Original", "Effect Size Original", 0.0, 4.9, value = c(0.0, 1.5),
+    #   #             sep = "")
+    # ),
     mainPanel
     (
      width = 7,
@@ -165,12 +169,7 @@ server <- function(input, output, session) {
   
   #link to the pre-registration is 0 -> so far we are not using it: new_etd <- etd[,c(6,7,8,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
   new_etd <- etd[,c(7,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
-  print(new_etd)
-  
-  #cols <- c(6,7,8)
-  #new_etd$sample.id <- do.call(paste, c(new_etd[cols], sep="-"))
-
-  #print(new_etd["Link.to.the.paper"])
+  #print(column(etd))
   
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
   filtered_content<- reactive({
@@ -208,7 +207,7 @@ server <- function(input, output, session) {
                        list(visible=FALSE, targets=c(0)),
                        list(
                          #targets = c(3,1,4,5,6,9,10,11,12,13,14,15,16,17), change this and line 186 to see part of the table
-                         targets = c(2, 3,4,5,6,7,8,9,10,11,12,13,14,15),
+                         targets = c(2,3,4, 5,6,7,8,9,10,11,12,13,14,15),
                          render = JS(
                            "function(data, type, row, meta) {",
                            "return type === 'display' && data.length > 40 ?",
