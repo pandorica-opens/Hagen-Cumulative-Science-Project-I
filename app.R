@@ -14,20 +14,15 @@ library(stringr)
 
 #load the dataset from the google sheets document
 url <- 'https://docs.google.com/spreadsheets/d/1VBnEGbanAt5yLXkpMGRGJWZeuw1TLNVudksgXyksHq0/edit?ts=5beae9fc#gid=0'
+#url <- 'https://docs.google.com/spreadsheets/d/1Li1ufThPTZNE_svGQtVlHb-5vQ9EiwX2pOTKvjxfd0E/edit?usp=sharing'
+
 etd <- as.data.frame(read.csv(text = gsheet2text(url, format = 'csv'), stringsAsFactors = FALSE))
 
 #add clickable icons with link to the paper
 link_icon<-as.character(img(src="pdf-3.png", height="13px", width="13px"))
 link_icon_osf<-as.character(img(src="osf.png", height="13px", width="13px"))
-etd$Link.to.the.paper <- paste0("<a href='",etd$Link.to.the.paper,"' target='_blank'>",link_icon,"</a>")
-etd$Link.to.the.OSF.Project <- paste0("<a href='",etd$Link.to.the.OSF.Project,"' target='_blank'>",link_icon_osf,"</a>")
-
-#print(etd$Link.to.the.paper)
-#authors <- etd[,c("Auhors")]
-
-#replace the column names with the 
-etd.column.names<-as.vector(codebook$Clear.Variable.Name)
-colnames(etd)<-etd.column.names
+etd$Link.to.the.paper <- paste0("<a href='",etd$Link.to.the.paper,"' target='_blank'>",link_icon, "</a>", 
+                                "<a href='",etd$Link.to.the.OSF.Project,"' target='_blank'>",link_icon_osf,"</a>")
 
 # c is one dimentional array (vector)
 
@@ -137,25 +132,6 @@ ui<-navbarPage(
      width = 7,
      plotOutput('plotting_output', width = "100%", height = 550)
     )       
-  #   titlePanel("Movie explorer"),
-  #   fluidRow(
-  #     column(3,
-  #            wellPanel(
-  #              h4("Filter"),
-  #              sliderInput("reviews", "Minimum number of reviews on Rotten Tomatoes",
-  #                          10, 300, 80, step = 10),
-  #            
-  #     column(9,
-  #            ggvisOutput('plotting_output'),
-  #            wellPanel(
-  #              span("Number of movies selected:",
-  #                   textOutput("n_movies")
-  #              )
-  #            )
-  #     )
-  #            )
-  #     ) 
-  # ) 
 ),
 
   tabPanel(title="Effect Size",
@@ -187,19 +163,14 @@ ui<-navbarPage(
 server <- function(input, output, session) {
   
   
-  #new_etd <- etd [,c("Title","Link.to.the.paper") ]
-  new_etd <- etd # is a "list"
-  new_etd <- new_etd[,c(6,7,8,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
+  #link to the pre-registration is 0 -> so far we are not using it: new_etd <- etd[,c(6,7,8,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
+  new_etd <- etd[,c(7,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
+  print(new_etd)
+  
   #cols <- c(6,7,8)
   #new_etd$sample.id <- do.call(paste, c(new_etd[cols], sep="-"))
 
   #print(new_etd["Link.to.the.paper"])
-  
-  # filtered_content<- reactive({
-  # 
-  #   subset(etd, !duplicated(etd$Title) & etd$Title!="empty")
-  # 
-  # })
   
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
   filtered_content<- reactive({
@@ -237,7 +208,7 @@ server <- function(input, output, session) {
                        list(visible=FALSE, targets=c(0)),
                        list(
                          #targets = c(3,1,4,5,6,9,10,11,12,13,14,15,16,17), change this and line 186 to see part of the table
-                         targets = c(4,5,6,7,8,9,10,11,12,13,14,15,16,17),
+                         targets = c(2, 3,4,5,6,7,8,9,10,11,12,13,14,15),
                          render = JS(
                            "function(data, type, row, meta) {",
                            "return type === 'display' && data.length > 40 ?",
