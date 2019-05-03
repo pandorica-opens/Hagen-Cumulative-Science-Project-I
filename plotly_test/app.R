@@ -20,8 +20,8 @@ server <- function(input, output) {
   
   # renderPlotly() also understands ggplot2 objects!
   output$plot <- renderPlotly({
-    plot_ly(mtcars, x = ~mpg, y = ~wt, marker = list(size = 10,
-                                                     color = 'rgba(255, 182, 193, .9)',
+    plot_ly(mtcars, x = ~mpg, y = ~wt, marker = list(size = ~(mpg+wt),
+                                                     color = ~wt,
                                                      line = list(color = 'rgba(152, 0, 0, .8)',
                                                                  width = 2))) %>%
       layout(title = 'Styled Scatter',
