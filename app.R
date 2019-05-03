@@ -242,21 +242,30 @@ server <- function(input, output, session) {
   
   output$click <- renderPrint({
     d <- event_data("plotly_click")
-    d = d[,c(2,3,4)]
-    #d[1,1] = 'Point Number'
     if (is.null(d)) "Click events appear here (double-click to clear)" else 
-    {names(d) <- c("Study Number","Effect size original","Effect size replication")
-    d}
+    {
+      d = d[,c(2,3,4)]
+      names(d) <- c("Study Number","Effect size original","Effect size replication")
+      d
+    }
   })
   
   output$brush <- renderPrint({
+    an.error.occured <- FALSE
+    tryCatch( { 
     d <- event_data("plotly_selected")
-    d = d[,c(2,3,4)]
-    if (is.null(d)) "Click and drag events (i.e., select/lasso) appear here (double-click to clear)" 
+    #print(d)
+    if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
     else 
-    {names(d) <- c("Study Number","Effect size original","Effect size replication")
-    d}
-  })
+    {
+      d = d[,c(2,3,4)]
+      names(d) <- c("Study Number","Effect size original","Effect size replication")
+      print(d)
+    }}, error = function(e) {an.error.occured <<- TRUE})
+    
+    if (an.error.occured)
+      {print("Choose the area with points")}
+    })
 
 
 
