@@ -120,24 +120,17 @@ ui<-navbarPage(
 
   
   tabPanel(title="Plotting",
-    # sidebarPanel(
-    #   # sliderInput("Effect.size.Replication", "Effect Size Replication", 0.0, 1.0, value = c(0.0, 1.0),
-    #   #             sep = ""),
-    #   # # those variables - "Effect.size.Replication" - "Effect.size.Original" 
-    #   # # at this point doesn't mean anything because they are not reactive, thus the plot is 
-    #   # # not getting changed after we change the variable; we have to do it from server side to get a
-    #   # # respond here
-    #   # # also good idea to get the values by giving a max and min of the measuarements, and
-    #   # # not the fixed values like 0.0, 4.9, 0.0, 1.0
-    #   # 
-    #   # sliderInput("Effect.size.Original", "Effect Size Original", 0.0, 4.9, value = c(0.0, 1.5),
-    #   #             sep = "")
-    # ),
     mainPanel
     (
       width = 10,
-      plotlyOutput("plotting_output"),
-      verbatimTextOutput("event")
+      plotlyOutput("plotting_output"),   
+      verbatimTextOutput("click"),
+      verbatimTextOutput("brush"),
+      tags$head(tags$style("#click, #brush{color: #350B0B;
+                           font-size: 14px;
+                           font-style: italic;
+                           }"))
+      #verbatimTextOutput("event")
     )       
 ),
 
@@ -232,29 +225,6 @@ server <- function(input, output, session) {
   })
   
   
-  
-  # output$plotting_output <- renderPlotly({
-  #   
-  #   palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-  #     "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
-  # 
-  #   #par(pin=c(7, 7))
-  #   plot_ly (
-  #       etd[,c("Effect.size.Original")],
-  #       etd[,c("Effect.size.Replication")],
-  #       xlab="Effect Size Original",
-  #       ylab="Effect Size Replication",
-  #       type = 'scatter' ,
-  #       mode = 'markers' )
-  #   # plot(
-  #   #   etd[,c("Effect.size.Original")],
-  #   #   etd[,c("Effect.size.Replication")],
-  #   #   xlab="Effect Size Original",
-  #   #   ylab="Effect Size Replication",
-  #   #   col = "blue",
-  #   #   pch = 20, 
-  #   #   cex = 3)
-  # })
   output$plotting_output <- renderPlotly({
     plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, marker = list(size = 12,
                                                                                        color = 'rgba(255, 182, 193, .9)',
@@ -265,9 +235,27 @@ server <- function(input, output, session) {
            xaxis = list(zeroline = FALSE))
   })
   
-  output$event <- renderPrint({
-    d <- event_data("plotly_hover")
-    if (is.null(d)) "Hover on a point!" else d
+  # output$event <- renderPrint({
+  #   d <- event_data("plotly_hover")
+  #   if (is.null(d)) "Hover on a point!" else d
+  # })
+  
+  output$click <- renderPrint({
+    d <- event_data("plotly_click")
+    d = d[,c(2,3,4)]
+    #d[1,1] = 'Point Number'
+    if (is.null(d)) "Click events appear here (double-click to clear)" else 
+    {names(d) <- c("Study Number","Effect size original","Effect size replication")
+    d}
+  })
+  
+  output$brush <- renderPrint({
+    d <- event_data("plotly_selected")
+    d = d[,c(2,3,4)]
+    if (is.null(d)) "Click and drag events (i.e., select/lasso) appear here (double-click to clear)" 
+    else 
+    {names(d) <- c("Study Number","Effect size original","Effect size replication")
+    d}
   })
 
 
