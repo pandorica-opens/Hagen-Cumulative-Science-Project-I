@@ -7,10 +7,11 @@ library(DT)
 library(data.table)
 library(rsconnect)
 #library(questionr)
-#library(ggplot2)
+library(ggplot2)
 library(shinythemes)
 library(visNetwork)
 library(stringr)
+library(plotly)
 
 #load the dataset from the google sheets document
 url <- 'https://docs.google.com/spreadsheets/d/1VBnEGbanAt5yLXkpMGRGJWZeuw1TLNVudksgXyksHq0/edit?ts=5beae9fc#gid=0'
@@ -49,14 +50,15 @@ codebook <- subset(codebook, !is.na(Order) & Clear.Variable.Name != "")
 etd.column.names<-as.vector(codebook$Clear.Variable.Name)
 colnames(etd)<-etd.column.names
 
-#print(colnames(etd))
-
+#to check the names of the rows uncomment
+print(typeof(etd))
 
 ui<-navbarPage(
   title="Hagen Cumulative Science Project I",
   fluid=TRUE,
   selected = "Home",
   theme = shinytheme("flatly"),
+  
 # Hagen Cumulative Science Project I (the very first (zero) tab) 
 #is a hyperlink, however, hothing happens when pressing there
 
@@ -133,8 +135,9 @@ ui<-navbarPage(
     # ),
     mainPanel
     (
-     width = 7,
-     plotOutput('plotting_output', width = "100%", height = 550)
+      width = 10,
+      plotlyOutput("plotting_output"),
+      verbatimTextOutput("event")
     )       
 ),
 
@@ -230,21 +233,44 @@ server <- function(input, output, session) {
   
   
   
-  output$plotting_output <- renderPlot({
-    
-    palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
-
-    par(pin=c(7, 7))
-    plot(
-      etd[,c("Effect.size.Original")],
-      etd[,c("Effect.size.Replication")],
-      xlab="Effect Size Original",
-      ylab="Effect Size Replication",
-      col = "blue",
-      pch = 20, 
-      cex = 3)
+  # output$plotting_output <- renderPlotly({
+  #   
+  #   palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+  #     "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+  # 
+  #   #par(pin=c(7, 7))
+  #   plot_ly (
+  #       etd[,c("Effect.size.Original")],
+  #       etd[,c("Effect.size.Replication")],
+  #       xlab="Effect Size Original",
+  #       ylab="Effect Size Replication",
+  #       type = 'scatter' ,
+  #       mode = 'markers' )
+  #   # plot(
+  #   #   etd[,c("Effect.size.Original")],
+  #   #   etd[,c("Effect.size.Replication")],
+  #   #   xlab="Effect Size Original",
+  #   #   ylab="Effect Size Replication",
+  #   #   col = "blue",
+  #   #   pch = 20, 
+  #   #   cex = 3)
+  # })
+  output$plotting_output <- renderPlotly({
+    plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, marker = list(size = 12,
+                                                                                       color = 'rgba(255, 182, 193, .9)',
+                                                                                       line = list(color = 'rgba(152, 0, 0, .8)',
+                                                                                                   width = 3))) %>%
+    layout(title = 'Effect size',
+           yaxis = list(zeroline = FALSE),
+           xaxis = list(zeroline = FALSE))
   })
+  
+  output$event <- renderPrint({
+    d <- event_data("plotly_hover")
+    if (is.null(d)) "Hover on a point!" else d
+  })
+
+
 
 
   # Plotting both the original and the replicated effect size
