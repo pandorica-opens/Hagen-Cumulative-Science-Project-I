@@ -107,11 +107,7 @@ ui<-navbarPage(
            #define the placeholder for the output
            mainPanel(
              width = 12,
-             DT::dataTableOutput("results")  
-             # navbarMenu(title = "More",
-             #            tabPanel("tab 3", "contents"),
-             #            tabPanel("tab 4", "contents"),
-             #            tabPanel("tab 5", "contents")
+             DT::dataTableOutput("results")
            )
   ),
   
@@ -127,7 +123,7 @@ ui<-navbarPage(
                                   font-size: 14px;
                                   font-style: italic;
                                   }"))
-      #verbatimTextOutput("event")
+              #verbatimTextOutput("event")
              )       
              ),
   
@@ -151,6 +147,7 @@ ui<-navbarPage(
            mainPanel
            (
              #width = 10,
+             height = 10000,
              plotlyOutput("replicated_studies_effect_size_output"), 
              tags$head(tags$style("#click, #brush{color: #350B0B;
                                   font-size: 14px;
@@ -226,7 +223,7 @@ server <- function(input, output, session) {
     
   })
   
-  
+  #plot for Plotting tab panel
   output$plotting_output <- renderPlotly({
     plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, marker = list(size = 12,
                                                                                         color = 'rgba(255, 182, 193, .9)',
@@ -242,6 +239,7 @@ server <- function(input, output, session) {
   #   if (is.null(d)) "Hover on a point!" else d
   # })
   
+  #click response for Plotting tab panel
   output$click <- renderPrint({
     d <- event_data("plotly_click")
     if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else 
@@ -251,6 +249,8 @@ server <- function(input, output, session) {
       d
     }
   })
+  
+  #click response for Replicated Studies Effect size tab panel
   output$click_replicated_effect_size <- renderPrint({
     d <- event_data("plotly_click")
     if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else 
@@ -266,6 +266,7 @@ server <- function(input, output, session) {
     }
   })
   
+  #select/lasso response for Plotting tab panel
   output$brush <- renderPrint({
     an.error.occured <- FALSE
     tryCatch( { 
@@ -282,8 +283,6 @@ server <- function(input, output, session) {
     if (an.error.occured)
     {print("Choose the area with points")}
   })
-  
-  
   
   
   # Plotting both the original and the replicated effect size
@@ -451,7 +450,7 @@ server <- function(input, output, session) {
   # Plotting the replicated effect size
   output$replicated_studies_effect_size_output <- renderPlotly({
     
- 
+    #Continue work here
     #Plotting the lowest values of the error effect size
     # plot(
     #   low_replicated_effect_size,
@@ -506,9 +505,6 @@ server <- function(input, output, session) {
              xaxis = list(title = "Effect Size Replication", zeroline = FALSE)
            #,autosize = F
            )
-
-    # To use the author names as the axis labels.
-    #axis(2, at=1:length(replicated_effect_size), labels=etd[,c("Authors")], las=1)
 
   })
   
