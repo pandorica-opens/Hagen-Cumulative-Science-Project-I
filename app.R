@@ -1,4 +1,3 @@
-
 library(shiny)
 library(dplyr)
 library(ggvis)
@@ -59,9 +58,9 @@ ui<-navbarPage(
   selected = "Home",
   theme = shinytheme("flatly"),
   
-# Hagen Cumulative Science Project I (the very first (zero) tab) 
-#is a hyperlink, however, hothing happens when pressing there
-
+  # Hagen Cumulative Science Project I (the very first (zero) tab) 
+  #is a hyperlink, however, hothing happens when pressing there
+  
   tags$head(
     tags$style(HTML("@import url('https://fonts.googleapis.com/css?family=Raleway:400,600,600i');
                     }
@@ -72,19 +71,17 @@ ui<-navbarPage(
     tags$style(HTML(
       "hr.style1
       {
-	       border-top: 1px solid #8c8b8b;
+      border-top: 1px solid #8c8b8b;
       }
-
       #plotting_output {
-        margin: 0 10%;
+      margin: 0 10%;
       }
-
       #original_studies_effect_size_output {
-        margin: 0 10%;
+      margin: 0 10%;
       }
       "
     ))
-  ),
+    ),
   
   tabPanel(title = "Home",
            h1("Hagen Cumulative Science Project I", align="center", style= "font-family: 'Raleway';font-size:46px"),
@@ -103,62 +100,67 @@ ui<-navbarPage(
            )
            
   ),
-
-
+  
+  
   tabPanel(title="Database",
-                   
-     #define the placeholder for the output
-     mainPanel(
-       width = 12,
-       DT::dataTableOutput("results")  
-       # navbarMenu(title = "More",
-       #            tabPanel("tab 3", "contents"),
-       #            tabPanel("tab 4", "contents"),
-       #            tabPanel("tab 5", "contents")
-     )
-   ),
-
+           
+           #define the placeholder for the output
+           mainPanel(
+             width = 12,
+             DT::dataTableOutput("results")  
+             # navbarMenu(title = "More",
+             #            tabPanel("tab 3", "contents"),
+             #            tabPanel("tab 4", "contents"),
+             #            tabPanel("tab 5", "contents")
+           )
+  ),
+  
   
   tabPanel(title="Plotting",
-    mainPanel
-    (
-      width = 10,
-      plotlyOutput("plotting_output"),   
-      verbatimTextOutput("click"),
-      verbatimTextOutput("brush"),
-      tags$head(tags$style("#click, #brush{color: #350B0B;
-                           font-size: 14px;
-                           font-style: italic;
-                           }"))
+           mainPanel
+           (
+             width = 10,
+             plotlyOutput("plotting_output"),   
+             verbatimTextOutput("click"),
+             verbatimTextOutput("brush"),
+             tags$head(tags$style("#click, #brush{color: #350B0B;
+                                  font-size: 14px;
+                                  font-style: italic;
+                                  }"))
       #verbatimTextOutput("event")
-    )       
-),
-
+             )       
+             ),
+  
   tabPanel(title="Effect Size",
-    mainPanel
-    (
-      width = 10,
-      plotOutput('effect_size_output', width = 2000, height = 3500)
-    )             
+           mainPanel
+           (
+             width = 10,
+             plotOutput('effect_size_output', width = 2000, height = 3500)
+           )             
   ),
-
+  
   tabPanel(title="Original Studies Effect Size",
-    mainPanel
-    (
-      width = 10,
-      plotOutput('original_studies_effect_size_output', width = 2000, height = 1300)
-    )             
+           mainPanel
+           (
+             width = 10,
+             plotOutput('original_studies_effect_size_output', width = 2000, height = 1300)
+           )             
   ),
-
+  
   tabPanel(title="Replicated Studies Effect Size",
-    mainPanel
-    (
-      width = 10,
-      plotOutput('replicated_studies_effect_size_output', width = 2000, height = 1300)
-    )             
+           mainPanel
+           (
+             #width = 10,
+             plotlyOutput("replicated_studies_effect_size_output"), 
+             tags$head(tags$style("#click, #brush{color: #350B0B;
+                                  font-size: 14px;
+                                  font-style: italic;
+                                  }")),
+             verbatimTextOutput("click_replicated_effect_size")
+           )             
   )
   
-)
+           )
 
 server <- function(input, output, session) {
   
@@ -169,50 +171,50 @@ server <- function(input, output, session) {
   
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
   filtered_content<- reactive({
-
+    
     subset(new_etd, !duplicated(new_etd$Title) & new_etd$Title!="empty")
-
+    
   })
   
   
   #filter the whole data (also duplicates)
   filtered_dep_measure<-reactive({
     return(filtered_content())
-
+    
   })
-
+  
   output$results <- renderDT({
     datatable( escape = FALSE,
-      filtered_dep_measure(),
-      #etd,
-      extensions = c('FixedColumns','FixedHeader', 'Buttons'),
-      rownames = TRUE,
-      selection = 'none',
-      class = 'compact nowrap row-border',
-      options = list(scrollX=TRUE,scrollY="75vh",
-                     autoWidth=TRUE,
-                     paging=FALSE,
-                     fixedHeader=TRUE,
-                     buttons = list(c('copy', 'excel')),
-                     dom='Bfrtip',
-                     autoWidth=TRUE,
-                     
-                     columnDefs=list(
-                       # list(width= "300px", targets=c(1,3)),
-                       # list(width= "500px", targets=c(5)),
-                       list(visible=FALSE, targets=c(0)),
-                       list(
-                         #targets = c(3,1,4,5,6,9,10,11,12,13,14,15,16,17), change this and line 186 to see part of the table
-                         targets = c(2,3,4, 5,6,7,8,9,10,11,12,13,14,15),
-                         render = JS(
-                           "function(data, type, row, meta) {",
-                           "return type === 'display' && data.length > 40 ?",
-                           "'<span title=\"' + data + '\">' + data.substr(0, 40) + '...</span>' : data;",
-                           "}")
-                       )
-                     )
-
-      )          
+               filtered_dep_measure(),
+               #etd,
+               extensions = c('FixedColumns','FixedHeader', 'Buttons'),
+               rownames = TRUE,
+               selection = 'none',
+               class = 'compact nowrap row-border',
+               options = list(scrollX=TRUE,scrollY="75vh",
+                              autoWidth=TRUE,
+                              paging=FALSE,
+                              fixedHeader=TRUE,
+                              buttons = list(c('copy', 'excel')),
+                              dom='Bfrtip',
+                              autoWidth=TRUE,
+                              
+                              columnDefs=list(
+                                # list(width= "300px", targets=c(1,3)),
+                                # list(width= "500px", targets=c(5)),
+                                list(visible=FALSE, targets=c(0)),
+                                list(
+                                  #targets = c(3,1,4,5,6,9,10,11,12,13,14,15,16,17), change this and line 186 to see part of the table
+                                  targets = c(2,3,4, 5,6,7,8,9,10,11,12,13,14,15),
+                                  render = JS(
+                                    "function(data, type, row, meta) {",
+                                    "return type === 'display' && data.length > 40 ?",
+                                    "'<span title=\"' + data + '\">' + data.substr(0, 40) + '...</span>' : data;",
+                                    "}")
+                                )
+                              )
+                              
+               )          
     )
   })
   
@@ -227,12 +229,12 @@ server <- function(input, output, session) {
   
   output$plotting_output <- renderPlotly({
     plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, marker = list(size = 12,
-                                                                                       color = 'rgba(255, 182, 193, .9)',
-                                                                                       line = list(color = 'rgba(152, 0, 0, .8)',
-                                                                                                   width = 3))) %>%
-    layout(title = 'Effect size',
-           yaxis = list(zeroline = FALSE),
-           xaxis = list(zeroline = FALSE))
+                                                                                        color = 'rgba(255, 182, 193, .9)',
+                                                                                        line = list(color = 'rgba(152, 0, 0, .8)',
+                                                                                                    width = 3))) %>%
+      layout(title = 'Effect size',
+             yaxis = list(zeroline = FALSE),
+             xaxis = list(zeroline = FALSE))
   })
   
   # output$event <- renderPrint({
@@ -242,10 +244,24 @@ server <- function(input, output, session) {
   
   output$click <- renderPrint({
     d <- event_data("plotly_click")
-    if (is.null(d)) "Click events appear here (double-click to clear)" else 
+    if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else 
     {
       d = d[,c(2,3,4)]
       names(d) <- c("Study Number","Effect size original","Effect size replication")
+      d
+    }
+  })
+  output$click_replicated_effect_size <- renderPrint({
+    d <- event_data("plotly_click")
+    if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else 
+    {
+      #get autors name here or in the plotly
+      d = d[,c(4,3)]
+      d <- append(d, etd[d[1,1],c("Authors")])
+      d <- as.data.frame(d)
+      names(d) <- c("Study Number",
+                    "Effect size replication",
+                    "Authors")
       d
     }
   })
@@ -253,28 +269,29 @@ server <- function(input, output, session) {
   output$brush <- renderPrint({
     an.error.occured <- FALSE
     tryCatch( { 
-    d <- event_data("plotly_selected")
-    #print(d)
-    if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
-    else 
-    {
-      d = d[,c(2,3,4)]
-      names(d) <- c("Study Number","Effect size original","Effect size replication")
-      print(d)
-    }}, error = function(e) {an.error.occured <<- TRUE})
+      d <- event_data("plotly_selected")
+      #print(d)
+      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
+      else 
+      {
+        d = d[,c(2,3,4)]
+        names(d) <- c("Study Number","Effect size original","Effect size replication")
+        print(d)
+      }}, error = function(e) {an.error.occured <<- TRUE})
     
     if (an.error.occured)
-      {print("Choose the area with points")}
-    })
-
-
-
-
+    {print("Choose the area with points")}
+  })
+  
+  
+  
+  
   # Plotting both the original and the replicated effect size
+  
   output$effect_size_output <- renderPlot({
     
     palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+              "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
     
     par(pin=c(15, 45))
     
@@ -295,17 +312,17 @@ server <- function(input, output, session) {
     
     # Plotting the highest values of the error effect size
     plot(
-        high_original_effect_size,
-        y=original_effect_size_y_zus,
-        xlab="Effect Size",
-        ylab="",
-        col = "cyan",
-        pch = 1, # Code of the shape of the plotting point, in this case it is a point
-        las=1,
-        xlim=c(0, 6),
-        cex = 0.1, # Size of the plotting point
-        yaxt="n",
-        frame.plot=FALSE)
+      high_original_effect_size,
+      y=original_effect_size_y_zus,
+      xlab="Effect Size",
+      ylab="",
+      col = "cyan",
+      pch = 1, # Code of the shape of the plotting point, in this case it is a point
+      las=1,
+      xlim=c(0, 6),
+      cex = 0.1, # Size of the plotting point
+      yaxt="n",
+      frame.plot=FALSE)
     par(new=TRUE)
     
     # Drawing segments to match between the lowest and highest error values
@@ -319,7 +336,7 @@ server <- function(input, output, session) {
       )
     }
     par(new=TRUE)
-
+    
     # Drawing segments to match between the lowest and highest error values
     for (i in 1:length(replicated_effect_size_y_zus))
     {
@@ -334,17 +351,17 @@ server <- function(input, output, session) {
     par(new=TRUE)
     
     plot(
-        original_effect_size,
-        y=original_effect_size_y_zus,
-        xlab="Effect Size",
-        ylab="",
-        col = "cyan",
-        pch = 20, # Code of the shape of the plotting point, in this case it is a circle
-        las=1,
-        xlim=c(0, 6),
-        cex = 2.2, # Size of the plotting point
-        yaxt="n", 
-        frame.plot=FALSE)
+      original_effect_size,
+      y=original_effect_size_y_zus,
+      xlab="Effect Size",
+      ylab="",
+      col = "cyan",
+      pch = 20, # Code of the shape of the plotting point, in this case it is a circle
+      las=1,
+      xlim=c(0, 6),
+      cex = 2.2, # Size of the plotting point
+      yaxt="n", 
+      frame.plot=FALSE)
     par(new=TRUE)
     
     points(
@@ -354,7 +371,7 @@ server <- function(input, output, session) {
       pch = 15, # Code of the shape of the plotting point, in this case it is a square
       cex = 1.5 # Size of the plotting point
     )
-
+    
     # To use the author names as the axis labels.
     axis(2, at=original_effect_size_y_zus, labels=etd[,c("Authors")], las=1)
     
@@ -363,17 +380,17 @@ server <- function(input, output, session) {
     # print(etd[,c("Year.of.publication")])
     
   })
-
-
-
+  
+  
+  
   # Plotting the original effect size
   output$original_studies_effect_size_output <- renderPlot({
     
     palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+              "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
     
     par(pin=c(10, 15))
-
+    
     # Plotting the lowest values of the error effect size
     plot(
       low_original_effect_size,
@@ -391,61 +408,11 @@ server <- function(input, output, session) {
     
     # Plotting the highest values of the error effect size
     plot(
-        high_original_effect_size,
-        y=original_effect_size_y,
-        xlab="Effect Size",
-        ylab="",
-        col = "black",
-        pch = 1, # Code of the shape of the plotting point, in this case it is a point
-        las=1,
-        xlim=c(0, 6),
-        cex = 0.1, # Size of the plotting point
-        yaxt="n",
-        frame.plot=FALSE)
-    par(new=TRUE)
-
-    # Drawing segments to match between the lowest and highest error values
-    for (i in 1:length(replicated_effect_size))
-    {
-      segments(low_original_effect_size[i], i, high_original_effect_size[i], i)
-    }
-    par(new=TRUE)
-
-    plot(
-        original_effect_size,
-        original_effect_size_y,
-        xlab="Effect Size",
-        ylab="",
-        col = "cyan",
-        pch = 20, # Code of the shape of the plotting point, in this case it is a circle
-        las=1,
-        xlim=c(0, 6),
-        cex = 2.2, # Size of the plotting point
-        yaxt="n",
-        frame.plot=FALSE)
-    
-    # To use the author names as the axis labels.
-    axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
-
-  })
-
-
-
-  # Plotting the replicated effect size
-  output$replicated_studies_effect_size_output <- renderPlot({
-    
-    palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-      "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
-    
-    par(pin=c(10, 15))
-
-    # Plotting the lowest values of the error effect size
-    plot(
-      low_replicated_effect_size,
-      y=replicated_effect_size_y,
+      high_original_effect_size,
+      y=original_effect_size_y,
       xlab="Effect Size",
       ylab="",
-      col = "grey",
+      col = "black",
       pch = 1, # Code of the shape of the plotting point, in this case it is a point
       las=1,
       xlim=c(0, 6),
@@ -454,50 +421,98 @@ server <- function(input, output, session) {
       frame.plot=FALSE)
     par(new=TRUE)
     
-    # Plotting the highest values of the error effect size
-    plot(
-        high_replicated_effect_size,
-        y=replicated_effect_size_y,
-        xlab="Effect Size",
-        ylab="",
-        col = "grey",
-        pch = 1, # Code of the shape of the plotting point, in this case it is a point
-        las=1,
-        xlim=c(0, 6),
-        cex = 0.1, # Size of the plotting point
-        yaxt="n",
-        frame.plot=FALSE)
-    par(new=TRUE)
-
     # Drawing segments to match between the lowest and highest error values
     for (i in 1:length(replicated_effect_size))
     {
-      segments(low_replicated_effect_size[i], i, high_replicated_effect_size[i], i, col = "grey")
+      segments(low_original_effect_size[i], i, high_original_effect_size[i], i)
     }
     par(new=TRUE)
-
+    
     plot(
-        replicated_effect_size,
-        replicated_effect_size_y,
-        xlab="Effect Size",
-        ylab="",
-        col = "firebrick1",
-        pch = 15, # Code of the shape of the plotting point, in this case it is a square
-        las=1,
-        xlim=c(0, 6),
-        cex = 1.5, # Size of the plotting point
-        yaxt="n",
-        frame.plot=FALSE)
+      original_effect_size,
+      original_effect_size_y,
+      xlab="Effect Size",
+      ylab="",
+      col = "cyan",
+      pch = 20, # Code of the shape of the plotting point, in this case it is a circle
+      las=1,
+      xlim=c(0, 6),
+      cex = 2.2, # Size of the plotting point
+      yaxt="n",
+      frame.plot=FALSE)
     
     # To use the author names as the axis labels.
-    axis(2, at=1:length(replicated_effect_size), labels=etd[,c("Authors")], las=1)
+    axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
+    
+  })
+  
+  
+  
+  # Plotting the replicated effect size
+  output$replicated_studies_effect_size_output <- renderPlotly({
+    
+ 
+    #Plotting the lowest values of the error effect size
+    # plot(
+    #   low_replicated_effect_size,
+    #   y=replicated_effect_size_y,
+    #   xlab="Effect Size",
+    #   ylab="",
+    #   col = "grey",
+    #   pch = 1, # Code of the shape of the plotting point, in this case it is a point
+    #   las=1,
+    #   xlim=c(0, 6),
+    #   cex = 0.1, # Size of the plotting point
+    #   yaxt="n",
+    #   frame.plot=FALSE)
+    # par(new=TRUE)
+
+    # Plotting the highest values of the error effect size
+    # plot(
+    #   high_replicated_effect_size,
+    #   y=replicated_effect_size_y,
+    #   xlab="Effect Size",
+    #   ylab="",
+    #   col = "grey",
+    #   pch = 1, # Code of the shape of the plotting point, in this case it is a point
+    #   las=1,
+    #   xlim=c(0, 6),
+    #   cex = 0.1, # Size of the plotting point
+    #   yaxt="n",
+    #   frame.plot=FALSE)
+    # par(new=TRUE)
+
+    # Drawing segments to match between the lowest and highest error values
+    # for (i in 1:length(replicated_effect_size))
+    # {
+    #   segments(low_replicated_effect_size[i], i, high_replicated_effect_size[i], i, col = "grey")
+    # }
+    # par(new=TRUE)
+    
+    plot_ly(etd,
+            x=~Effect.size.Replication,
+            y=~replicated_effect_size_y,
+            #z = ~Authors,
+            marker = list(size = 12,
+                      color = 'rgba(255, 182, 193, .9)',
+                      line = list(color = 'rgba(152, 0, 0, .8)',
+                                width = 3))) %>%
+    layout(title = 'Replicated studies effect size',
+             yaxis = list(
+                title = "Study number",
+                #labels = etd[,c("Authors")],
+                zeroline = FALSE
+             ),
+             xaxis = list(title = "Effect Size Replication", zeroline = FALSE)
+           #,autosize = F
+           )
+
+    # To use the author names as the axis labels.
+    #axis(2, at=1:length(replicated_effect_size), labels=etd[,c("Authors")], las=1)
 
   })
- 
+  
 }
 
 #Run the application
 shinyApp(ui = ui, server = server)
-
-
-
