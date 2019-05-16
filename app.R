@@ -146,14 +146,14 @@ ui<-navbarPage(
   tabPanel(title="Replicated Studies Effect Size",
            mainPanel
            (
-             #width = 10,
-             height = 10000,
+             width = 10,
+             #height = 10000,
              plotlyOutput("replicated_studies_effect_size_output"), 
-             tags$head(tags$style("#click, #brush{color: #350B0B;
+             verbatimTextOutput("click_replicated_effect_size"),
+             tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
                                   font-size: 14px;
                                   font-style: italic;
-                                  }")),
-             verbatimTextOutput("click_replicated_effect_size")
+                                  }"))
            )             
   )
   
@@ -492,17 +492,32 @@ server <- function(input, output, session) {
             x=~Effect.size.Replication,
             y=~replicated_effect_size_y,
             #z = ~Authors,
+            type="scatter",
             marker = list(size = 12,
                       color = 'rgba(255, 182, 193, .9)',
                       line = list(color = 'rgba(152, 0, 0, .8)',
                                 width = 3))) %>%
+      
+    add_trace(x = c(low_replicated_effect_size[1], replicated_effect_size[1]),
+              y = c(replicated_effect_size_y[1],replicated_effect_size_y[1]), mode = 'lines', 
+              color = 'rgba(255, 37, 100, .9)') %>% #shows rgba value instead of trace name
+      #change trace name on low/high
+      
+      
+    add_trace(x = c(high_replicated_effect_size[1], replicated_effect_size[1]),
+              y = c(replicated_effect_size_y[1],replicated_effect_size_y[1]), 
+              mode = 'lines', line = list(color = 'rgba(152, 0, 0, .8)', width = 3)) %>%
+              #doesn't show value, but trace is not clickable
+
+
     layout(title = 'Replicated studies effect size',
-             yaxis = list(
-                title = "Study number",
-                #labels = etd[,c("Authors")],
-                zeroline = FALSE
+                        yaxis = list(
+                        title = "Study number",
+                        #labels = etd[,c("Authors")],
+                        zeroline = FALSE
              ),
-             xaxis = list(title = "Effect Size Replication", zeroline = FALSE)
+             xaxis = list(title = "Effect Size Replication", zeroline = FALSE),
+            showlegend=F
            #,autosize = F
            )
 
