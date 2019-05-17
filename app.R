@@ -52,6 +52,13 @@ colnames(etd)<-etd.column.names
 #to check the names of the rows uncomment
 print(typeof(etd))
 
+unpipe <- function(...){
+  for(i in replicated_effect_size_y) {
+    add_trace(p, x = c(low_replicated_effect_size[i], high_replicated_effect_size[i]),
+              y = c(replicated_effect_size_y[i],replicated_effect_size_y[i]), mode = 'lines')
+  }
+}
+
 ui<-navbarPage(
   title="Hagen Cumulative Science Project I",
   fluid=TRUE,
@@ -488,7 +495,7 @@ server <- function(input, output, session) {
     # }
     # par(new=TRUE)
     
-    plot_ly(etd,
+    p<-plot_ly(etd,
             x=~Effect.size.Replication,
             y=~replicated_effect_size_y,
             #z = ~Authors,
@@ -496,30 +503,29 @@ server <- function(input, output, session) {
             marker = list(size = 12,
                       color = 'rgba(255, 182, 193, .9)',
                       line = list(color = 'rgba(152, 0, 0, .8)',
-                                width = 3))) %>%
-      
-    add_trace(x = c(low_replicated_effect_size[1], replicated_effect_size[1]),
-              y = c(replicated_effect_size_y[1],replicated_effect_size_y[1]), mode = 'lines', 
-              color = 'rgba(255, 37, 100, .9)') %>% #shows rgba value instead of trace name
-      #change trace name on low/high
-      
-      
-    add_trace(x = c(high_replicated_effect_size[1], replicated_effect_size[1]),
-              y = c(replicated_effect_size_y[1],replicated_effect_size_y[1]), 
-              mode = 'lines', line = list(color = 'rgba(152, 0, 0, .8)', width = 3)) %>%
-              #doesn't show value, but trace is not clickable
+                                width = 3))) 
+      for (i in replicated_effect_size_y)
+      {
+        p<-add_trace(p, x = c(low_replicated_effect_size[i], replicated_effect_size[i]),
+                        y = c(replicated_effect_size_y[i],replicated_effect_size_y[i]),
+                        mode = 'lines', color = 'rgba(255, 37, 100, .9)')
+        p<-add_trace(p, x = c(high_replicated_effect_size[i], replicated_effect_size[i]),
+                        y = c(replicated_effect_size_y[i],replicated_effect_size_y[i]), 
+                        mode = 'lines', line = list(color = 'rgba(152, 0, 0, .8)', width = 3))
 
-
-    layout(title = 'Replicated studies effect size',
-                        yaxis = list(
-                        title = "Study number",
-                        #labels = etd[,c("Authors")],
-                        zeroline = FALSE
+      }
+    
+    p=layout(p, title = 'Replicated studies effect size',
+             yaxis = list(
+               title = "Study number",
+               #labels = etd[,c("Authors")],
+               zeroline = FALSE
              ),
              xaxis = list(title = "Effect Size Replication", zeroline = FALSE),
-            showlegend=F
-           #,autosize = F
-           )
+             showlegend=F)
+             #,autosize = F
+    
+    print(p)
 
   })
   
