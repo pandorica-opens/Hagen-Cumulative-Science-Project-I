@@ -398,14 +398,14 @@ server <- function(input, output, session) {
                split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y))
     
     
-    p=layout(p, title = 'Replicated studies effect size',
+    p=layout(p, title = 'Original studies effect size',
              xaxis = list(
                title = "Study number",
                #labels = etd[,c("Authors")],
                zeroline = FALSE
              ),
              #height = 500,
-             yaxis = list(title = "Effect Size", zeroline = FALSE),
+             yaxis = list(title = "Original studies effect size", zeroline = FALSE),
              showlegend=F
              #autosize = F
     )
