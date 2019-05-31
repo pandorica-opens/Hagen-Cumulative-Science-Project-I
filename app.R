@@ -132,7 +132,7 @@ ui<-navbarPage(
            mainPanel
            (
              width = 10,
-             plotOutput('effect_size_output', width = 2000, height = 3500)
+             plotlyOutput('effect_size_output')
            )             
   ),
   
@@ -226,10 +226,9 @@ server <- function(input, output, session) {
   
   #plot for Plotting tab panel
   output$plotting_output <- renderPlotly({
-    plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, marker = list(size = 12,
-                                                                                        color = 'rgba(255, 182, 193, .9)',
-                                                                                        line = list(color = 'rgba(152, 0, 0, .8)',
-                                                                                                    width = 3))) %>%
+    plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, type="scatter",
+            mode='markers', marker = list(size = 12,color = 'rgba(255, 182, 193, .9)',
+                          line = list(color = 'rgba(152, 0, 0, .8)',width = 3))) %>%
       layout(title = 'Effect size',
              yaxis = list(zeroline = FALSE),
              xaxis = list(zeroline = FALSE))
@@ -288,96 +287,37 @@ server <- function(input, output, session) {
   
   # Plotting both the original and the replicated effect size
   
-  output$effect_size_output <- renderPlot({
+  output$effect_size_output <- renderPlotly({
     
-    palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-              "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+    p<-plot_ly(etd,
+               y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
+               x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+               type="scatter",
+               mode='lines+markers',
+               marker = list(size = 12,
+                             color = 'rgba(0, 182, 193, .9)',
+                             line = list(color = 'rgba(0, 0, 0, .8)',
+                                         width = 3)),
+               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y))%>%
     
-    par(pin=c(15, 45))
+    add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
+              x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+              type = "scatter", mode = "markers+lines", marker = list(size = 12,
+              color = 'rgba(255, 182, 193, .9)',line = list(color = 'rgba(152, 0, 0, .8)', width = 3)))
+      
     
-    # Plotting the lowest values of the error effect size
-    plot(
-      low_original_effect_size,
-      y=original_effect_size_y_zus,
-      xlab="Effect Size",
-      ylab="",
-      col = "cyan",
-      pch = 1, # Code of the shape of the plotting point, in this case it is a point
-      las=1,
-      xlim=c(0, 6),
-      cex = 0.1, # Size of the plotting point
-      yaxt="n",
-      frame.plot=FALSE)
-    par(new=TRUE)
-    
-    # Plotting the highest values of the error effect size
-    plot(
-      high_original_effect_size,
-      y=original_effect_size_y_zus,
-      xlab="Effect Size",
-      ylab="",
-      col = "cyan",
-      pch = 1, # Code of the shape of the plotting point, in this case it is a point
-      las=1,
-      xlim=c(0, 6),
-      cex = 0.1, # Size of the plotting point
-      yaxt="n",
-      frame.plot=FALSE)
-    par(new=TRUE)
-    
-    # Drawing segments to match between the lowest and highest error values
-    for (i in 1:length(original_effect_size_y_zus))
-    {
-      segments(
-        low_original_effect_size[i], 
-        original_effect_size_y_zus[i], 
-        high_original_effect_size[i], 
-        original_effect_size_y_zus[i]
-      )
-    }
-    par(new=TRUE)
-    
-    # Drawing segments to match between the lowest and highest error values
-    for (i in 1:length(replicated_effect_size_y_zus))
-    {
-      segments(
-        low_replicated_effect_size[i], 
-        replicated_effect_size_y_zus[i], 
-        high_replicated_effect_size[i], 
-        replicated_effect_size_y_zus[i],
-        col = "grey"
-      )
-    }
-    par(new=TRUE)
-    
-    plot(
-      original_effect_size,
-      y=original_effect_size_y_zus,
-      xlab="Effect Size",
-      ylab="",
-      col = "cyan",
-      pch = 20, # Code of the shape of the plotting point, in this case it is a circle
-      las=1,
-      xlim=c(0, 6),
-      cex = 2.2, # Size of the plotting point
-      yaxt="n", 
-      frame.plot=FALSE)
-    par(new=TRUE)
-    
-    points(
-      replicated_effect_size, 
-      replicated_effect_size_y_zus, 
-      col="firebrick1",
-      pch = 15, # Code of the shape of the plotting point, in this case it is a square
-      cex = 1.5 # Size of the plotting point
+    layout(p,
+      title = 'Both the original and the replicated effect size',
+             xaxis = list(
+               title = "Study number",
+               #labels = etd[,c("Authors")],
+               zeroline = FALSE
+             ),
+             #height = 500,
+             yaxis = list(title = "Effect size", zeroline = FALSE),
+             showlegend=F
+             #autosize = F
     )
-    
-    # To use the author names as the axis labels.
-    axis(2, at=original_effect_size_y_zus, labels=etd[,c("Authors")], las=1)
-    
-    # print(etd[,c("Title")])
-    # print(etd[,c("Authors")])
-    # print(etd[,c("Year.of.publication")])
     
   })
   
