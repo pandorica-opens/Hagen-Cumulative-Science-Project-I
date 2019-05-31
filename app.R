@@ -49,6 +49,11 @@ codebook <- subset(codebook, !is.na(Order) & Clear.Variable.Name != "")
 etd.column.names<-as.vector(codebook$Clear.Variable.Name)
 colnames(etd)<-etd.column.names
 
+df_replication_effect_size <- data.frame(id = replicated_effect_size_y,
+                 type = c(1,2,3),
+                 values = c(high_replicated_effect_size, replicated_effect_size, low_replicated_effect_size))
+
+
 #to check the names of the rows uncomment
 print(typeof(etd))
 
@@ -154,7 +159,7 @@ ui<-navbarPage(
            mainPanel
            (
              width = 10,
-             #height = 10000,
+             height = 500,
              plotlyOutput("replicated_studies_effect_size_output"), 
              verbatimTextOutput("click_replicated_effect_size"),
              tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
@@ -162,9 +167,9 @@ ui<-navbarPage(
                                   font-style: italic;
                                   }"))
            )             
-  )
+             )
   
-           )
+             )
 
 server <- function(input, output, session) {
   
@@ -260,15 +265,15 @@ server <- function(input, output, session) {
   #click response for Replicated Studies Effect size tab panel
   output$click_replicated_effect_size <- renderPrint({
     d <- event_data("plotly_click")
-    if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else 
+    if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else
     {
       #get autors name here or in the plotly
-      d = d[,c(4,3)]
+      d = d[,c(3,4)]
       d <- append(d, etd[d[1,1],c("Authors")])
       d <- as.data.frame(d)
       names(d) <- c("Study Number",
-                    "Effect size replication",
-                    "Authors")
+                     "Effect size replication",
+                     "Authors")
       d
     }
   })
@@ -457,76 +462,33 @@ server <- function(input, output, session) {
   # Plotting the replicated effect size
   output$replicated_studies_effect_size_output <- renderPlotly({
     
-    #Continue work here
-    #Plotting the lowest values of the error effect size
-    # plot(
-    #   low_replicated_effect_size,
-    #   y=replicated_effect_size_y,
-    #   xlab="Effect Size",
-    #   ylab="",
-    #   col = "grey",
-    #   pch = 1, # Code of the shape of the plotting point, in this case it is a point
-    #   las=1,
-    #   xlim=c(0, 6),
-    #   cex = 0.1, # Size of the plotting point
-    #   yaxt="n",
-    #   frame.plot=FALSE)
-    # par(new=TRUE)
-
-    # Plotting the highest values of the error effect size
-    # plot(
-    #   high_replicated_effect_size,
-    #   y=replicated_effect_size_y,
-    #   xlab="Effect Size",
-    #   ylab="",
-    #   col = "grey",
-    #   pch = 1, # Code of the shape of the plotting point, in this case it is a point
-    #   las=1,
-    #   xlim=c(0, 6),
-    #   cex = 0.1, # Size of the plotting point
-    #   yaxt="n",
-    #   frame.plot=FALSE)
-    # par(new=TRUE)
-
-    # Drawing segments to match between the lowest and highest error values
-    # for (i in 1:length(replicated_effect_size))
-    # {
-    #   segments(low_replicated_effect_size[i], i, high_replicated_effect_size[i], i, col = "grey")
-    # }
-    # par(new=TRUE)
-    
     p<-plot_ly(etd,
-            x=~Effect.size.Replication,
-            y=~replicated_effect_size_y,
-            #z = ~Authors,
-            type="scatter",
-            marker = list(size = 12,
-                      color = 'rgba(255, 182, 193, .9)',
-                      line = list(color = 'rgba(152, 0, 0, .8)',
-                                width = 3))) 
-      for (i in replicated_effect_size_y)
-      {
-        p<-add_trace(p, x = c(low_replicated_effect_size[i], replicated_effect_size[i]),
-                        y = c(replicated_effect_size_y[i],replicated_effect_size_y[i]),
-                        mode = 'lines', color = 'rgba(255, 37, 100, .9)')
-        p<-add_trace(p, x = c(high_replicated_effect_size[i], replicated_effect_size[i]),
-                        y = c(replicated_effect_size_y[i],replicated_effect_size_y[i]), 
-                        mode = 'lines', line = list(color = 'rgba(152, 0, 0, .8)', width = 3))
+               y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
+               x=~c(replicated_effect_size_y, replicated_effect_size_y, replicated_effect_size_y),
+               #z = ~Authors,
+               type="scatter",
+               mode='lines+markers',
+               marker = list(size = 12,
+                             color = 'rgba(255, 182, 193, .9)',
+                             line = list(color = 'rgba(152, 0, 0, .8)',
+                                         width = 3), name=etd[,c("Authors")]), 
+               split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y) )
 
-      }
     
     p=layout(p, title = 'Replicated studies effect size',
-             yaxis = list(
+             xaxis = list(
                title = "Study number",
                #labels = etd[,c("Authors")],
                zeroline = FALSE
              ),
-             xaxis = list(title = "Effect Size Replication", zeroline = FALSE),
-             showlegend=F)
-             #,autosize = F
+             #height = 500,
+             yaxis = list(title = "Effect Size Replication", zeroline = FALSE),
+             showlegend=F
+             #autosize = F
+             )
     
     print(p)
-
+    
   })
   
 }
