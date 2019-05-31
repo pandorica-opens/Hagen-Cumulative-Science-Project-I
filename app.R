@@ -49,20 +49,9 @@ codebook <- subset(codebook, !is.na(Order) & Clear.Variable.Name != "")
 etd.column.names<-as.vector(codebook$Clear.Variable.Name)
 colnames(etd)<-etd.column.names
 
-df_replication_effect_size <- data.frame(id = replicated_effect_size_y,
-                 type = c(1,2,3),
-                 values = c(high_replicated_effect_size, replicated_effect_size, low_replicated_effect_size))
-
 
 #to check the names of the rows uncomment
 print(typeof(etd))
-
-unpipe <- function(...){
-  for(i in replicated_effect_size_y) {
-    add_trace(p, x = c(low_replicated_effect_size[i], high_replicated_effect_size[i]),
-              y = c(replicated_effect_size_y[i],replicated_effect_size_y[i]), mode = 'lines')
-  }
-}
 
 ui<-navbarPage(
   title="Hagen Cumulative Science Project I",
@@ -151,7 +140,7 @@ ui<-navbarPage(
            mainPanel
            (
              width = 10,
-             plotOutput('original_studies_effect_size_output', width = 2000, height = 1300)
+             plotlyOutput('original_studies_effect_size_output')
            )             
   ),
   
@@ -395,65 +384,34 @@ server <- function(input, output, session) {
   
   
   # Plotting the original effect size
-  output$original_studies_effect_size_output <- renderPlot({
+  output$original_studies_effect_size_output <- renderPlotly({
     
-    palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
-              "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+    p<-plot_ly(etd,
+               y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
+               x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+               type="scatter",
+               mode='lines+markers',
+               marker = list(size = 12,
+                             color = 'rgba(255, 182, 193, .9)',
+                             line = list(color = 'rgba(152, 0, 0, .8)',
+                                         width = 3)),
+               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y))
     
-    par(pin=c(10, 15))
     
-    # Plotting the lowest values of the error effect size
-    plot(
-      low_original_effect_size,
-      y=original_effect_size_y,
-      xlab="Effect Size",
-      ylab="",
-      col = "black",
-      pch = 1, # Code of the shape of the plotting point, in this case it is a point
-      las=1,
-      xlim=c(0, 6),
-      cex = 0.1, # Size of the plotting point
-      yaxt="n",
-      frame.plot=FALSE)
-    par(new=TRUE)
+    p=layout(p, title = 'Replicated studies effect size',
+             xaxis = list(
+               title = "Study number",
+               #labels = etd[,c("Authors")],
+               zeroline = FALSE
+             ),
+             #height = 500,
+             yaxis = list(title = "Effect Size", zeroline = FALSE),
+             showlegend=F
+             #autosize = F
+    )
+    # # To use the author names as the axis labels.
+    # axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
     
-    # Plotting the highest values of the error effect size
-    plot(
-      high_original_effect_size,
-      y=original_effect_size_y,
-      xlab="Effect Size",
-      ylab="",
-      col = "black",
-      pch = 1, # Code of the shape of the plotting point, in this case it is a point
-      las=1,
-      xlim=c(0, 6),
-      cex = 0.1, # Size of the plotting point
-      yaxt="n",
-      frame.plot=FALSE)
-    par(new=TRUE)
-    
-    # Drawing segments to match between the lowest and highest error values
-    for (i in 1:length(replicated_effect_size))
-    {
-      segments(low_original_effect_size[i], i, high_original_effect_size[i], i)
-    }
-    par(new=TRUE)
-    
-    plot(
-      original_effect_size,
-      original_effect_size_y,
-      xlab="Effect Size",
-      ylab="",
-      col = "cyan",
-      pch = 20, # Code of the shape of the plotting point, in this case it is a circle
-      las=1,
-      xlim=c(0, 6),
-      cex = 2.2, # Size of the plotting point
-      yaxt="n",
-      frame.plot=FALSE)
-    
-    # To use the author names as the axis labels.
-    axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
     
   })
   
@@ -465,14 +423,13 @@ server <- function(input, output, session) {
     p<-plot_ly(etd,
                y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
                x=~c(replicated_effect_size_y, replicated_effect_size_y, replicated_effect_size_y),
-               #z = ~Authors,
                type="scatter",
                mode='lines+markers',
                marker = list(size = 12,
                              color = 'rgba(255, 182, 193, .9)',
                              line = list(color = 'rgba(152, 0, 0, .8)',
-                                         width = 3), name=etd[,c("Authors")]), 
-               split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y) )
+                                         width = 3)),
+               split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y))
 
     
     p=layout(p, title = 'Replicated studies effect size',
