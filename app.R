@@ -11,6 +11,8 @@ library(shinythemes)
 library(visNetwork)
 library(stringr)
 library(plotly)
+library(profvis)
+library(shinycssloaders)
 
 #load the dataset from the google sheets document
 url <- 'https://docs.google.com/spreadsheets/d/1VBnEGbanAt5yLXkpMGRGJWZeuw1TLNVudksgXyksHq0/edit?ts=5beae9fc#gid=0'
@@ -106,18 +108,24 @@ ui<-navbarPage(
   tabPanel(title="Database",
            
            #define the placeholder for the output
+           #<div class="loader">Loading...</div>,
+           
            mainPanel(
              width = 12,
-             DT::dataTableOutput("results")
+             withSpinner(
+             DT::dataTableOutput("results"),
+             type=2, color='#7D3C98', size = 2,
+             color.background='#F4ECF7')   
            )
   ),
   
   
-  tabPanel(title="Plotting",
+  tabPanel(title="Plotting", 
            mainPanel
            (
-             width = 10,
-             plotlyOutput("plotting_output"),   
+             withSpinner(
+             plotlyOutput("plotting_output"), type=2, color='#7D3C98', size = 2,
+             color.background='#F4ECF7'),   
              verbatimTextOutput("click"),
              verbatimTextOutput("brush"),
              tags$head(tags$style("#click, #brush{color: #350B0B;
@@ -125,14 +133,16 @@ ui<-navbarPage(
                                   font-style: italic;
                                   }"))
               #verbatimTextOutput("event")
-             )       
+             )
              ),
+            
   
   tabPanel(title="Effect Size",
            mainPanel
            (
-             width = 10,
-             plotlyOutput('effect_size_output')
+             width = 15,
+             withSpinner(plotlyOutput('effect_size_output'), type=2, color='#7D3C98', size = 2,
+                         color.background='#F4ECF7')   
            )             
   ),
   
@@ -140,7 +150,8 @@ ui<-navbarPage(
            mainPanel
            (
              width = 10,
-             plotlyOutput('original_studies_effect_size_output')
+             withSpinner(plotlyOutput('original_studies_effect_size_output'), type=2, color='#7D3C98', size = 2,
+             color.background='#F4ECF7')   
            )             
   ),
   
@@ -148,18 +159,23 @@ ui<-navbarPage(
            mainPanel
            (
              width = 10,
-             height = 500,
-             plotlyOutput("replicated_studies_effect_size_output"), 
-             verbatimTextOutput("click_replicated_effect_size"),
-             tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
-                                  font-size: 14px;
-                                  font-style: italic;
-                                  }"))
-           )             
+             withSpinner(
+             plotlyOutput("replicated_studies_effect_size_output"),
+             
+             #div(plotlyOutput("replicated_studies_effect_size_output",height = "100%"), align = "right"), #not working
+             type=2, color='#7D3C98', size = 2,
+             color.background='#F4ECF7'), 
+             verbatimTextOutput("click_replicated_effect_size")
+             
+             # tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
+             #                      font-size: 14px;
+             #                      font-style: italic;
+             #                      }"))
+                    
              )
   
              )
-
+)
 server <- function(input, output, session) {
   
   
@@ -231,7 +247,8 @@ server <- function(input, output, session) {
                           line = list(color = 'rgba(152, 0, 0, .8)',width = 3))) %>%
       layout(title = 'Effect size',
              yaxis = list(zeroline = FALSE),
-             xaxis = list(zeroline = FALSE))
+             xaxis = list(zeroline = FALSE), autosize = F)
+    
   })
   
   # output$event <- renderPrint({
@@ -259,10 +276,14 @@ server <- function(input, output, session) {
       d = d[,c(3,4)]
       d <- append(d, etd[d[1,1],c("Authors")])
       d <- as.data.frame(d)
+      #print(ncol(d))
+      if (ncol(d)==3)
+      {
       names(d) <- c("Study Number",
                      "Effect size replication",
                      "Authors")
       d
+      }
     }
   })
   
@@ -306,17 +327,14 @@ server <- function(input, output, session) {
               color = 'rgba(255, 182, 193, .9)',line = list(color = 'rgba(152, 0, 0, .8)', width = 3)))
       
     
-    layout(p,
-      title = 'Both the original and the replicated effect size',
+    layout(p, title = 'Both the original and the replicated effect size',
              xaxis = list(
                title = "Study number",
-               #labels = etd[,c("Authors")],
                zeroline = FALSE
              ),
-             #height = 500,
              yaxis = list(title = "Effect size", zeroline = FALSE),
-             showlegend=F
-             #autosize = F
+             showlegend=F,
+             autosize = F
     )
     
   })
@@ -324,6 +342,7 @@ server <- function(input, output, session) {
   
   
   # Plotting the original effect size
+  profvis({
   output$original_studies_effect_size_output <- renderPlotly({
     
     p<-plot_ly(etd,
@@ -346,13 +365,14 @@ server <- function(input, output, session) {
              ),
              #height = 500,
              yaxis = list(title = "Original studies effect size", zeroline = FALSE),
-             showlegend=F
-             #autosize = F
+             showlegend=F,
+             autosize = F
     )
     # # To use the author names as the axis labels.
     # axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
     
     
+  })
   })
   
   
@@ -380,8 +400,8 @@ server <- function(input, output, session) {
              ),
              #height = 500,
              yaxis = list(title = "Effect Size Replication", zeroline = FALSE),
-             showlegend=F
-             #autosize = F
+             showlegend=F,
+             autosize = F
              )
     
     print(p)
