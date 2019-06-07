@@ -113,9 +113,9 @@ ui<-navbarPage(
            mainPanel(
              width = 12,
              withSpinner(
-             DT::dataTableOutput("results"),
-             type=2, color='#7D3C98', size = 2,
-             color.background='#F4ECF7')   
+               DT::dataTableOutput("results"),
+               type=2, color='#7D3C98', size = 2,
+               color.background='#F4ECF7')   
            )
   ),
   
@@ -123,9 +123,10 @@ ui<-navbarPage(
   tabPanel(title="Plotting", 
            mainPanel
            (
+             width = 12,
              withSpinner(
-             plotlyOutput("plotting_output"), type=2, color='#7D3C98', size = 2,
-             color.background='#F4ECF7'),   
+               div(plotlyOutput("plotting_output"), align = 'left'), type=2, color='#7D3C98', size = 2,
+               color.background='#F4ECF7'),   
              verbatimTextOutput("click"),
              verbatimTextOutput("brush"),
              tags$head(tags$style("#click, #brush{color: #350B0B;
@@ -135,13 +136,13 @@ ui<-navbarPage(
               #verbatimTextOutput("event")
              )
              ),
-            
+  
   
   tabPanel(title="Effect Size",
            mainPanel
            (
-             width = 15,
-             withSpinner(plotlyOutput('effect_size_output'), type=2, color='#7D3C98', size = 2,
+             width = 12,
+             withSpinner(div(plotlyOutput('effect_size_output'), align = 'center'), type=2, color='#7D3C98', size = 2,
                          color.background='#F4ECF7')   
            )             
   ),
@@ -149,33 +150,31 @@ ui<-navbarPage(
   tabPanel(title="Original Studies Effect Size",
            mainPanel
            (
-             width = 10,
-             withSpinner(plotlyOutput('original_studies_effect_size_output'), type=2, color='#7D3C98', size = 2,
-             color.background='#F4ECF7')   
+             width = 12,
+             withSpinner(div(plotlyOutput('original_studies_effect_size_output'), align = 'center'), type=2, color='#7D3C98', size = 2,
+                         color.background='#F4ECF7')   
            )             
   ),
   
   tabPanel(title="Replicated Studies Effect Size",
            mainPanel
            (
-             width = 10,
+             width = 12,
              withSpinner(
-             plotlyOutput("replicated_studies_effect_size_output"),
+               div(plotlyOutput("replicated_studies_effect_size_output"), align = 'center'),
+               type=2, color='#7D3C98', size = 2,
+               color.background='#F4ECF7'), 
+             verbatimTextOutput("click_replicated_effect_size"),
              
-             #div(plotlyOutput("replicated_studies_effect_size_output",height = "100%"), align = "right"), #not working
-             type=2, color='#7D3C98', size = 2,
-             color.background='#F4ECF7'), 
-             verbatimTextOutput("click_replicated_effect_size")
+             tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
+                                  font-size: 14px;
+                                  font-style: italic;
+                                  }"))
              
-             # tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
-             #                      font-size: 14px;
-             #                      font-style: italic;
-             #                      }"))
-                    
-             )
-  
-             )
-)
+           )
+           
+  )
+           )
 server <- function(input, output, session) {
   
   
@@ -244,10 +243,11 @@ server <- function(input, output, session) {
   output$plotting_output <- renderPlotly({
     plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, type="scatter",
             mode='markers', marker = list(size = 12,color = 'rgba(255, 182, 193, .9)',
-                          line = list(color = 'rgba(152, 0, 0, .8)',width = 3))) %>%
+                                          line = list(color = 'rgba(152, 0, 0, .8)',width = 3)),
+            width = 1000, height = 400) %>%
       layout(title = 'Effect size',
-             yaxis = list(zeroline = FALSE),
-             xaxis = list(zeroline = FALSE), autosize = F)
+             yaxis = list(title = 'Effect size Original', zeroline = FALSE),
+             xaxis = list(title = 'Effect size Replication', zeroline = FALSE), autosize = F)
     
   })
   
@@ -279,10 +279,10 @@ server <- function(input, output, session) {
       #print(ncol(d))
       if (ncol(d)==3)
       {
-      names(d) <- c("Study Number",
-                     "Effect size replication",
-                     "Authors")
-      d
+        names(d) <- c("Study Number",
+                      "Effect size replication",
+                      "Authors")
+        d
       }
     }
   })
@@ -315,26 +315,27 @@ server <- function(input, output, session) {
                x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
                type="scatter",
                mode='lines+markers',
-               marker = list(size = 12,
-                             color = 'rgba(0, 182, 193, .9)',
-                             line = list(color = 'rgba(0, 0, 0, .8)',
+               marker = list(size = 12, color = 'rgba(0, 182, 193, .9)',
+               line = list(color = 'rgba(0, 0, 0, .8)',
                                          width = 3)),
-               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y))%>%
-    
-    add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
-              x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
-              type = "scatter", mode = "markers+lines", marker = list(size = 12,
-              color = 'rgba(255, 182, 193, .9)',line = list(color = 'rgba(152, 0, 0, .8)', width = 3)))
+               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
+               width = 1000, height = 400)%>%
       
+      add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
+                x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+                type = "scatter", mode = "markers+lines", 
+                marker = list(size = 12, color = 'rgba(255, 182, 193, .9)',
+                line = list(color = 'rgba(152, 0, 0, .8)', width = 3)))
+    
     
     layout(p, title = 'Both the original and the replicated effect size',
-             xaxis = list(
-               title = "Study number",
-               zeroline = FALSE
-             ),
-             yaxis = list(title = "Effect size", zeroline = FALSE),
-             showlegend=F,
-             autosize = F
+           xaxis = list(
+             title = "Study number",
+             zeroline = FALSE
+           ),
+           yaxis = list(title = "Effect size", zeroline = FALSE),
+           showlegend=F,
+           autosize = F
     )
     
   })
@@ -342,37 +343,34 @@ server <- function(input, output, session) {
   
   
   # Plotting the original effect size
-  profvis({
-  output$original_studies_effect_size_output <- renderPlotly({
-    
-    p<-plot_ly(etd,
-               y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
-               x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
-               type="scatter",
-               mode='lines+markers',
-               marker = list(size = 12,
-                             color = 'rgba(255, 182, 193, .9)',
-                             line = list(color = 'rgba(152, 0, 0, .8)',
-                                         width = 3)),
-               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y))
-    
-    
-    p=layout(p, title = 'Original studies effect size',
-             xaxis = list(
-               title = "Study number",
-               #labels = etd[,c("Authors")],
-               zeroline = FALSE
-             ),
-             #height = 500,
-             yaxis = list(title = "Original studies effect size", zeroline = FALSE),
-             showlegend=F,
-             autosize = F
-    )
-    # # To use the author names as the axis labels.
-    # axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
-    
-    
-  })
+  #profvis({
+    output$original_studies_effect_size_output <- renderPlotly({
+      
+      p<-plot_ly(etd,
+                 y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
+                 x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+                 type="scatter",
+                 mode='lines+markers',
+                 marker = list(size = 12,
+                               color = 'rgba(255, 182, 193, .9)',
+                               line = list(color = 'rgba(152, 0, 0, .8)',
+                                           width = 3)),
+                 split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y), 
+                 width = 1000, height = 400)
+      
+      
+      p=layout(p, title = 'Original studies effect size',
+               xaxis = list( title = "Study number", zeroline = FALSE),
+               #height = 500,
+               yaxis = list(title = "Original studies effect size", zeroline = FALSE),
+               showlegend=F,
+               autosize = F
+      )
+      # # To use the author names as the axis labels.
+      # axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
+      
+      
+    #})
   })
   
   
@@ -389,8 +387,9 @@ server <- function(input, output, session) {
                              color = 'rgba(255, 182, 193, .9)',
                              line = list(color = 'rgba(152, 0, 0, .8)',
                                          width = 3)),
-               split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y))
-
+               split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y),
+               width = 1000, height = 400)
+    
     
     p=layout(p, title = 'Replicated studies effect size',
              xaxis = list(
@@ -398,11 +397,10 @@ server <- function(input, output, session) {
                #labels = etd[,c("Authors")],
                zeroline = FALSE
              ),
-             #height = 500,
              yaxis = list(title = "Effect Size Replication", zeroline = FALSE),
              showlegend=F,
              autosize = F
-             )
+    )
     
     print(p)
     
