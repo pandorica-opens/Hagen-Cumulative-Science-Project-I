@@ -125,7 +125,7 @@ ui<-navbarPage(
              (
              width = 12,
              withSpinner(
-               div(plotlyOutput("plotting_output"), align = 'center'), type=2, color='#2B3E50', size = 2,
+               div(plotlyOutput("plotting_output"), align = 'left'), type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6'),
              verbatimTextOutput("click"),
              verbatimTextOutput("brush"),
@@ -152,7 +152,7 @@ ui<-navbarPage(
            (
              width = 12,
              withSpinner(
-               div(plotlyOutput("original_studies_effect_size_output"), align = 'center'),
+               div(plotlyOutput("original_studies_effect_size_output"), align = 'left'),
                type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6') 
            )
