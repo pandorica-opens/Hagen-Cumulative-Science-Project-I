@@ -121,9 +121,9 @@ ui<-navbarPage(
   
   
   tabPanel(title="Plotting", 
-          mainPanel
-             (
-             width = 12,
+           mainPanel
+           (
+             width = 11,
              withSpinner(
                div(plotlyOutput("plotting_output"), align = 'left'), type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6'),
@@ -135,31 +135,31 @@ ui<-navbarPage(
                                   }"))
               #verbatimTextOutput("event")
              )),
-           
+  
   
   tabPanel(title="Effect Size",
            mainPanel
            (
              width = 12,
-             withSpinner(div(plotlyOutput('effect_size_output'), align = 'center'), type=2, color='#2B3E50', size = 2,
+             withSpinner(div(plotlyOutput("effect_size_output"), align = 'center'), type=2, color='#2B3E50', size = 2,
                          color.background='#eef2f6')   
            )
-                       
+           
   ),
   
   tabPanel(title="Original Studies Effect Size",
            mainPanel
            (
-             width = 12,
+             width = 11,
              withSpinner(
-               div(plotlyOutput("original_studies_effect_size_output"), align = 'left'),
+               div(plotlyOutput("original_studies_effect_size_output"), align = 'left'), 
                type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6') 
            )
   ),
   
   tabPanel(title="Replicated Studies Effect Size",
-          
+           
            mainPanel
            (
              width = 12,
@@ -175,8 +175,8 @@ ui<-navbarPage(
                                   }"))
              
              
-           )
-           )
+             )
+             )
   ) 
 server <- function(input, output, session) {
   
@@ -248,7 +248,7 @@ server <- function(input, output, session) {
             mode='markers', marker = list(size = 20, color = ~c(original_effect_size_y),
                                           opacity = 0.7,
                                           line = list(color = 'rgba(152, 0, 0, .8)',width = 3)),
-            width = 1000, height = 400) %>%
+            width = 1200, height = 400) %>%
       layout(title = 'Effect size',
              yaxis = list(title = 'Effect size Original', zeroline = FALSE),
              xaxis = list(title = 'Effect size Replication', zeroline = FALSE), autosize = F)
@@ -325,7 +325,7 @@ server <- function(input, output, session) {
                                          width = 3)),
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
                split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
-               width = 1000, height = 400)%>%
+               width = 1200, height = 400)%>%
       
       add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
                 x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
@@ -351,7 +351,7 @@ server <- function(input, output, session) {
   # Plotting the original effect size
   #profvis({
   output$original_studies_effect_size_output <- renderPlotly({
-
+    
     p<-plot_ly(etd,
                y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
                x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
@@ -364,9 +364,9 @@ server <- function(input, output, session) {
                                          width = 3)),
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
                split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
-               width = 1000, height = 400)
-
-
+               width = 1200, height = 400)
+    
+    
     p=layout(p, title = 'Original studies effect size',
              xaxis = list( title = "Study number", zeroline = FALSE),
              #height = 500,
@@ -376,12 +376,12 @@ server <- function(input, output, session) {
     )
     # # To use the author names as the axis labels.
     # axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
-
-
+    
+    
     #})
   })
-
-
+  
+  
   
   
   # Plotting the replicated effect size
@@ -398,7 +398,8 @@ server <- function(input, output, session) {
                                          width = 3)),
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
                split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y),
-               width = 1000, height = 400)
+               width = 1200, height = 400
+               )
     
     
     p=layout(p, title = 'Replicated studies effect size',
