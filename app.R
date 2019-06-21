@@ -125,19 +125,18 @@ ui<-navbarPage(
            (
              width = 12,
              withSpinner(
-               div(plotlyOutput("replicated_studies_effect_size_output3"), align = 'center'), type=2, color='#2B3E50', size = 2,
-               color.background='#eef2f6')
-             # ,
+               div(plotlyOutput("plotting_output3"), align = 'center'), type=2, color='#2B3E50', size = 2,
+               color.background='#eef2f6'),
              # verbatimTextOutput("click"),
-             # verbatimTextOutput("brush"),
-             # tags$head(tags$style("#click, #brush{color: #350B0B;
-             #                      font-size: 14px;
-             #                      font-style: italic;
-             #                      }"))
+             verbatimTextOutput("brush"),
+             tags$head(tags$style("#click, #brush{color: #350B0B;
+                                  font-size: 14px;
+                                  font-style: italic;
+                                  }"))
              
-              #verbatimTextOutput("event")
-             )
-           ),
+             #verbatimTextOutput("event")
+           )
+  ),
   
   
   tabPanel(title="Effect Size",
@@ -145,21 +144,18 @@ ui<-navbarPage(
            (
              width = 12,
              withSpinner(div(plotlyOutput("effect_size_output"), align = 'center'), type=2, color='#2B3E50', size = 2,
-                         color.background='#eef2f6')   
+                         color.background='#eef2f6'),
+             #DT::dataTableOutput("bruscheffect")
+
+             verbatimTextOutput("brush_effect"),
+             tags$head(tags$style("#brusheffect{color: #350B0B;
+                                  font-size: 14px;
+                                  font-style: italic;
+                                  }"))
            )
            
   ),
-  
-  # tabPanel(title="Original Studies Effect Size",
-  #          mainPanel
-  #          (
-  #            width = 11,
-  #            withSpinner(
-  #              div(plotlyOutput("original_studies_effect_size_output"), align = 'left'), 
-  #              type=2, color='#2B3E50', size = 2,
-  #              color.background='#eef2f6') 
-  #          )
-  # ),
+
   tabPanel(title="Original Studies Effect Size",
            mainPanel
            (
@@ -167,7 +163,8 @@ ui<-navbarPage(
              withSpinner(
                div(plotlyOutput("original_studies_effect_size_output2"), align = 'center'), 
                type=2, color='#2B3E50', size = 2,
-               color.background='#eef2f6') 
+               color.background='#eef2f6'), 
+             verbatimTextOutput("brush_original")
            )
   ),
   
@@ -180,9 +177,10 @@ ui<-navbarPage(
                div(plotlyOutput("replicated_studies_effect_size_output"), align = 'center'),
                type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6'), 
-             verbatimTextOutput("click_replicated_effect_size"),
+             verbatimTextOutput("brush_replicated"),
              
-             tags$head(tags$style("#click_replicated_effect_size, #brush{color: #350B0B;
+             
+             tags$head(tags$style("#brush_replicated, #brush{color: #350B0B;
                                   font-size: 14px;
                                   font-style: italic;
                                   }"))
@@ -255,11 +253,10 @@ server <- function(input, output, session) {
     
   })
   
-  #plot for Plotting tab panel
-  #doesnt look the same, as in the data set
-  #chekc all plots for errors
+  #plot for Plotting tab panel is a bit wider
+  #check all plots for errors
   
-  output$replicated_studies_effect_size_output3 <- renderPlotly({
+  output$plotting_output3 <- renderPlotly({
     
     p<-plot_ly(etd,
                x = ~Effect.size.Original, 
@@ -280,20 +277,8 @@ server <- function(input, output, session) {
     print(p)
     
   })
-  #something went wrong here, at the plotting pab
-  #the results are not the same as at the table, check it respectivel
-  
-  # output$plotting_output <- renderPlotly({
-  #   plot_ly(etd, x = ~Effect.size.Original, y = ~Effect.size.Replication, type="scatter",
-  #           mode='markers', marker = list(size = 20, color = ~c(original_effect_size_y),
-  #                                         opacity = 0.7,
-  #                                         line = list(color = 'rgba(152, 0, 0, .8)',width = 3)),
-  #           width = 1200, height = 400) %>%
-  #     layout(title = 'Effect size',
-  #            yaxis = list(title = 'Effect size Original', zeroline = FALSE),
-  #            xaxis = list(title = 'Effect size Replication', zeroline = FALSE), autosize = F)
-  #   
-  # })
+  #problem with plotting tab - size is not the same
+
   
   # output$event <- renderPrint({
   #   d <- event_data("plotly_hover")
@@ -349,9 +334,66 @@ server <- function(input, output, session) {
     {print("Choose the area with points")}
   })
   
+  #select/lasso response for Effect size tab panel
+  output$brush_effect <- renderPrint({
+    an.error.occured <- FALSE
+    tryCatch( { 
+      d <- event_data("plotly_selected")
+      #print(d)
+      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
+      else 
+      {
+        study_number = d[,c(3)]
+        d = as.data.table(c(etd[study_number,c(15, 16, 17, 20, 21, 22)]))
+        #names(d) <- c("Study Number","Effect size original","Effect size replication")
+        print(d)
+      }}, error = function(e) {an.error.occured <<- TRUE})
+    
+    if (an.error.occured)
+    {print("Choose the area with points")}
+  })
+  
+  #select/lasso response for Original studies tab panel
+  output$brush_original <- renderPrint({
+    an.error.occured <- FALSE
+    tryCatch( { 
+      d <- event_data("plotly_selected")
+      #print(d)
+      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
+      else 
+      {
+        study_number = d[,c(3)]
+        d = as.data.table(c(etd[study_number,c(15, 16, 17)]))
+        #names(d) <- c("Study Number","Effect size original","Effect size replication")
+        print(d)
+      }}, error = function(e) {an.error.occured <<- TRUE})
+    
+    if (an.error.occured)
+    {print("Choose the area with points")}
+  })
+  
+  #select/lasso response for Replicated studies tab panel
+  output$brush_replicated <- renderPrint({
+    an.error.occured <- FALSE
+    tryCatch( { 
+      d <- event_data("plotly_selected")
+      #print(d)
+      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
+      else 
+      {
+        study_number = d[,c(3)]
+        d = as.data.table(c(etd[study_number,c(20, 21, 22)]))
+        #names(d) <- c("Study Number","Effect size original","Effect size replication")
+        print(d)
+      }}, error = function(e) {an.error.occured <<- TRUE})
+    
+    if (an.error.occured)
+    {print("Choose the area with points")}
+  })
+  
   
   output$effect_size_output <- renderPlotly({
-
+    
     p<-plot_ly(etd,
                y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
                x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
@@ -364,14 +406,14 @@ server <- function(input, output, session) {
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
                split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
                width = 1200, height = 400)%>%
-
+      
       add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
                 x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
                 type = "scatter", mode = "markers+lines",
                 marker = list(size = 12, color = c("#66ffc2", "#ff8080" , "#66c2ff"),
                               line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
-
-
+    
+    
     layout(p, title = 'Both the original and the replicated effect size',
            xaxis = list(
              title = "Study number",
@@ -381,9 +423,9 @@ server <- function(input, output, session) {
            showlegend=F,
            autosize = F
     )
-
+    
   })
-
+  
   
   
   # Plotting the original effect size
@@ -391,8 +433,8 @@ server <- function(input, output, session) {
   output$original_studies_effect_size_output2 <- renderPlotly({
     
     p<-plot_ly(etd,
-               y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
-               x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+               y=~c(original_effect_size),
+               x=~c(original_effect_size_y),
                type="scatter",
                mode='lines+markers',
                marker = list(size = 12,
@@ -400,18 +442,22 @@ server <- function(input, output, session) {
                              line = list(color = 'rgba(43, 62, 80, .8)',
                                          width = 3)),
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
-               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
+               error_y = list(type = "data",
+                              symmetric = FALSE,
+                              array = c(high_original_effect_size-original_effect_size),
+                              arrayminus = c(original_effect_size-low_original_effect_size)),
+               split=~c(original_effect_size_y),
                width = 1200, height = 400
     )
     
     
-    p=layout(p, title = 'Replicated studies effect size',
+    p=layout(p, title = 'Original studies effect size',
              xaxis = list(
                title = "Study number",
                #labels = etd[,c("Authors")],
                zeroline = FALSE
              ),
-             yaxis = list(title = "Effect Size Replication", zeroline = FALSE),
+             yaxis = list(title = "Effect Size Original", zeroline = FALSE),
              showlegend=F,
              autosize = F
     )
@@ -460,18 +506,22 @@ server <- function(input, output, session) {
   output$replicated_studies_effect_size_output <- renderPlotly({
     
     p<-plot_ly(etd,
-               y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
-               x=~c(replicated_effect_size_y, replicated_effect_size_y, replicated_effect_size_y),
+               y=~c(Effect.size.Replication),
+               x=~c(replicated_effect_size_y),
                type="scatter",
                mode='lines+markers',
                marker = list(size = 12,
                              color = c("#66ffc2", "#ff8080" , "#66c2ff"),
                              line = list(color = 'rgba(43, 62, 80, .8)',
                                          width = 3)),
+               error_y = list(type = "data",
+                              symmetric = FALSE,
+                              array = c(high_replicated_effect_size-replicated_effect_size),
+                              arrayminus = c(replicated_effect_size-low_replicated_effect_size)),
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
-               split=~c(replicated_effect_size_y,replicated_effect_size_y,replicated_effect_size_y),
+               split=~c(replicated_effect_size_y),
                width = 1200, height = 400
-               )
+    )
     
     
     p=layout(p, title = 'Replicated studies effect size',
@@ -489,7 +539,7 @@ server <- function(input, output, session) {
     
   })
   
-
+  
   
 }
 
