@@ -395,23 +395,28 @@ server <- function(input, output, session) {
   output$effect_size_output <- renderPlotly({
     
     p<-plot_ly(etd,
-               y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
-               x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+               y=~c(original_effect_size, replicated_effect_size),
+               x=~c(original_effect_size_y, original_effect_size_y),
                type="scatter",
-               mode='lines+markers',
+               #mode='markers',
                marker = list(size = 12, color = c("#ccebff", "#ffcccc" , "#ccffeb"), #can also change size to 20
                              #opacity = 0.9,
                              line = list(color = 'rgba(43, 62, 80, .8)',
                                          width = 3)),
                line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
-               split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
-               width = 1200, height = 400)%>%
+               split=~c(original_effect_size_y,original_effect_size_y),
+               width = 1200, height = 400,
+               
+               error_y = list(type = "data",
+                              symmetric = FALSE,
+                              array = c(high_original_effect_size-original_effect_size, high_replicated_effect_size - replicated_effect_size),
+                              arrayminus = c(original_effect_size-low_original_effect_size, replicated_effect_size - low_replicated_effect_size)))
       
-      add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
-                x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
-                type = "scatter", mode = "markers+lines",
-                marker = list(size = 12, color = c("#66ffc2", "#ff8080" , "#66c2ff"),
-                              line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
+      # add_trace(y=~c(Effect.size.Replication, high_replicated_effect_size, low_replicated_effect_size),
+      #           x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
+      #           type = "scatter", mode = "markers+lines",
+      #           marker = list(size = 12, color = c("#66ffc2", "#ff8080" , "#66c2ff"),
+      #                         line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
     
     
     layout(p, title = 'Both the original and the replicated effect size',
