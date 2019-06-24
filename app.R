@@ -42,6 +42,8 @@ replicated_effect_size_y_zus = seq(from=1, to=length(replicated_effect_size)*3, 
 original_effect_size_y = seq(1, length(original_effect_size))
 replicated_effect_size_y = seq(1, length(replicated_effect_size))
 
+max_original_replication = max(original_effect_size, replicated_effect_size)
+
 #Load the Codebook with additional Info about the columns of the dataset: Order,TopCategory, SubCategory, Variable, Clear.Variable.Name, Definitions,
 url_codebook<-'https://docs.google.com/spreadsheets/d/1f5QYC1F-Pd2v9N4DU6Yf29jdKPhOzdad6B2GDhWoVjM/edit?usp=sharing'
 codebook<-as.data.frame(read.csv(text = gsheet2text(url_codebook, format = 'csv'), stringsAsFactors = FALSE))
@@ -262,12 +264,19 @@ server <- function(input, output, session) {
                x = ~Effect.size.Original, 
                y = ~Effect.size.Replication,
                type="scatter",
+               name = "Replicated/orignal effect size",
                mode='markers', marker = list(size = 20, color = ~c(original_effect_size_y),
                                              opacity = 0.7,
                                              line = list(color = 'rgba(152, 0, 0, .8)',width = 3)),
                width = 1200, height = 400
-    )
-    
+    )%>%
+    add_trace(y=~c(0, max_original_replication),
+              x=~c(0, max_original_replication),
+              type = "scatter", mode = "lines",
+              name = "45 degree line",
+              marker = list(size = 0.3, color = c("#66ffc2"),
+                            line = list(color = 'rgba(43, 62, 80, .8)', width = 3))
+              )
     
     p=layout(p, title = 'Effect size',
              yaxis = list(title = 'Effect size Original', zeroline = FALSE),
@@ -411,23 +420,17 @@ server <- function(input, output, session) {
                               symmetric = FALSE,
                               array = ~c(high_original_effect_size-original_effect_size), #, high_replicated_effect_size-replicated_effect_size),
                               arrayminus = ~c(original_effect_size-low_original_effect_size))) %>% #, replicated_effect_size-low_replicated_effect_size)))
-    
-
-    add_trace(y=~c(Effect.size.Replication),
-              x=~c(original_effect_size_y),
-              type = "scatter", mode = "markers+lines",
-              error_y = list(type = "data",
-                             symmetric = FALSE,
-                             array = ~c(high_replicated_effect_size-replicated_effect_size), #, high_replicated_effect_size-replicated_effect_size),
-                             arrayminus = ~c(replicated_effect_size-low_replicated_effect_size)),
-              marker = list(size = 12, color = c("#66ffc2", "#ff8080" , "#66c2ff"),
-                            line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
-    
-    # add_trace(p, y=2.4,
-    #           x=3.3,
-    #           type = "scatter", mode = "markers+lines",
-    #           marker = list(size = 12, color = c("#66ffc2", "#ff8080" , "#66c2ff"),
-    #           line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
+      
+      
+      add_trace(y=~c(Effect.size.Replication),
+                x=~c(original_effect_size_y),
+                type = "scatter", mode = "markers+lines",
+                error_y = list(type = "data",
+                               symmetric = FALSE,
+                               array = ~c(high_replicated_effect_size-replicated_effect_size), #, high_replicated_effect_size-replicated_effect_size),
+                               arrayminus = ~c(replicated_effect_size-low_replicated_effect_size)),
+                marker = list(size = 12, color = c("#66ffc2", "#ff8080" , "#66c2ff"),
+                              line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
     
     
     
