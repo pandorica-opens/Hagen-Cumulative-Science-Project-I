@@ -195,7 +195,7 @@ server <- function(input, output, session) {
   
   
   #link to the pre-registration is 0 -> so far we are not using it: new_etd <- etd[,c(6,7,8,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
-  new_etd <- etd[,c(7,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
+  new_etd <- etd[,c(7,1,3,13,14,15,16,17,20,21,22)]
   #print(column(etd))
   
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
@@ -219,22 +219,24 @@ server <- function(input, output, session) {
                extensions = c('FixedColumns','FixedHeader', 'Buttons'),
                rownames = TRUE,
                selection = 'none',
+               colnames=c("Links", "Title", "Authors", "N <br/>original", "p-value<br/>original", 
+                          "Effect size<br/>original", "CI low<br/>original", "CI high<br/>original", 
+                          "Effect size<br/>replication", "CI low<br/>replication",
+                          "CI high <br/> replication"),
                class = 'compact nowrap row-border',
                options = list(scrollX=TRUE,scrollY="75vh",
-                              autoWidth=TRUE,
+                              #autoWidth=TRUE,
                               paging=FALSE,
                               fixedHeader=TRUE,
                               buttons = list(c('copy', 'excel')),
                               dom='Bfrtip',
-                              autoWidth=TRUE,
-                              
                               columnDefs=list(
                                 # list(width= "300px", targets=c(1,3)),
                                 # list(width= "500px", targets=c(5)),
                                 list(visible=FALSE, targets=c(0)),
                                 list(
                                   #targets = c(3,1,4,5,6,9,10,11,12,13,14,15,16,17), change this and line 186 to see part of the table
-                                  targets = c(2,3,4, 5,6,7,8,9,10,11,12,13,14,15),
+                                  targets = c(2,3,4,5,6,7,8,9,10,11),
                                   render = JS(
                                     "function(data, type, row, meta) {",
                                     "return type === 'display' && data.length > 40 ?",
@@ -270,13 +272,17 @@ server <- function(input, output, session) {
                                              line = list(color = 'rgba(152, 0, 0, .8)',width = 3)),
                width = 1200, height = 400
     )%>%
-    add_trace(y=~c(0, max_original_replication),
+      add_trace(y=~c(0, max_original_replication),
+                x=~c(0, max_original_replication),
+                type = "scatter", mode = "markers+lines",
+                name = "45 degree line",
+                marker = list(size = 0.3, color = c("#66ffc2"),
+                              line = list(color = 'rgba(43, 62, 80, .8)', width = 3))
+      ) %>%
+    add_trace(p, y=~c(0, 0),
               x=~c(0, max_original_replication),
-              type = "scatter", mode = "lines",
-              name = "45 degree line",
-              marker = list(size = 0.3, color = c("#66ffc2"),
-                            line = list(color = 'rgba(43, 62, 80, .8)', width = 3))
-              )
+              name = "dotted line",
+              line = list(color = 'rgb(205, 12, 24)', width = 4, dash = 'dash'))
     
     p=layout(p, title = 'Effect size',
              yaxis = list(title = 'Effect size Original', zeroline = FALSE),
