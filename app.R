@@ -215,8 +215,9 @@ server <- function(input, output, session) {
   output$results <- renderDT({
     datatable( escape = FALSE,
                filtered_dep_measure(),
+               filter = 'top',
                #etd,
-               extensions = c('FixedColumns','FixedHeader', 'Buttons'),
+               extensions = c('FixedColumns','FixedHeader', 'Buttons', 'Responsive'),
                rownames = TRUE,
                selection = 'none',
                colnames=c("Links", "Title", "Authors", "N <br/>original", "p-value<br/>original", 
@@ -224,7 +225,7 @@ server <- function(input, output, session) {
                           "Effect size<br/>replication", "CI low<br/>replication",
                           "CI high <br/> replication"),
                class = 'compact nowrap row-border',
-               options = list(scrollX=TRUE,scrollY="75vh",
+               options = list(scrollX=TRUE, #scrollY="75vh",
                               #autoWidth=TRUE,
                               paging=FALSE,
                               fixedHeader=TRUE,
@@ -239,11 +240,17 @@ server <- function(input, output, session) {
                                   targets = c(2,3,4,5,6,7,8,9,10,11),
                                   render = JS(
                                     "function(data, type, row, meta) {",
-                                    "return type === 'display' && data.length > 40 ?",
-                                    "'<span title=\"' + data + '\">' + data.substr(0, 40) + '...</span>' : data;",
+                                    "return type === 'display' && data.length > 30 ?",
+                                    "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
                                     "}")
+                                  
                                 )
                               )
+                              # ,
+                              # initComplete = JS(
+                              #   "function(settings, json) {",
+                              #   "$(this.api().table().header()).css({'background-color': '#2B3E50', 'color': '#fff'});",
+                              #   "}")
                               
                )          
     )
