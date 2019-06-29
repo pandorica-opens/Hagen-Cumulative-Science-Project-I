@@ -36,11 +36,14 @@ replicated_effect_size      <- etd[,c("Effect.size.Replication")]
 low_replicated_effect_size  <- etd[,c("CI_low.Replication")]
 high_replicated_effect_size <- etd[,c("CI_high.Replication")]
 
+titles <- etd[,c("Title")]
+
 original_effect_size_y_zus = seq(from=2, to=length(original_effect_size)*3+1, by=3)
 replicated_effect_size_y_zus = seq(from=1, to=length(replicated_effect_size)*3, by=3)
 
 original_effect_size_y = seq(1, length(original_effect_size))
 replicated_effect_size_y = seq(1, length(replicated_effect_size))
+study_numbers = seq(1, length(titles))
 
 max_original_replication = max(original_effect_size, replicated_effect_size)
 
@@ -193,10 +196,14 @@ ui<-navbarPage(
   ) 
 server <- function(input, output, session) {
   
-  
   #link to the pre-registration is 0 -> so far we are not using it: new_etd <- etd[,c(6,7,8,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
-  new_etd <- etd[,c(7,1,3,13,14,15,16,17,20,21,22)]
-  #print(column(etd))
+  new_etd <- etd[,c(7,13,14,15,16,17,20,21,22,1,3)]
+  #row.names(new_etd) <- study_numbers
+  #the same as just new_edt
+  # | | |
+  # ⇊ ⇊ ⇊
+  #new_edt <- as.data.frame(cbind.data.frame(study_numbers, new_etd))
+  #print(new_etd)
   
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
   filtered_content<- reactive({
@@ -215,15 +222,16 @@ server <- function(input, output, session) {
   output$results <- renderDT({
     datatable( escape = FALSE,
                filtered_dep_measure(),
-               filter = 'top',
+               #filter = 'top',
                #etd,
                extensions = c('FixedColumns','FixedHeader', 'Buttons', 'Responsive'),
-               rownames = TRUE,
+               #rownames = TRUE,
+               #rownames = study_numbers,
                selection = 'none',
-               colnames=c("Links", "Title", "Authors", "N <br/>original", "p-value<br/>original", 
+               colnames=c("Study number","Links","N <br/>original", "p-value<br/>original", 
                           "Effect size<br/>original", "CI low<br/>original", "CI high<br/>original", 
                           "Effect size<br/>replication", "CI low<br/>replication",
-                          "CI high <br/> replication"),
+                          "CI high <br/> replication",  "Title", "Authors"),
                class = 'compact nowrap row-border',
                options = list(scrollX=TRUE, #scrollY="75vh",
                               #autoWidth=TRUE,
@@ -240,8 +248,8 @@ server <- function(input, output, session) {
                                   targets = c(2,3,4,5,6,7,8,9,10,11),
                                   render = JS(
                                     "function(data, type, row, meta) {",
-                                    "return type === 'display' && data.length > 30 ?",
-                                    "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+                                    "return type === 'display' && data.length > 300 ?",
+                                    "'<span title=\"' + data + '\">' + data.substr(0, 300) + '...</span>' : data;",
                                     "}")
                                   
                                 )
@@ -286,10 +294,12 @@ server <- function(input, output, session) {
                 marker = list(size = 0.3, color = c("#66ffc2"),
                               line = list(color = 'rgba(43, 62, 80, .8)', width = 3))
       ) %>%
-    add_trace(p, y=~c(0, 0),
-              x=~c(0, max_original_replication),
-              name = "dotted line",
-              line = list(color = 'rgb(205, 12, 24)', width = 4, dash = 'dash'))
+      add_trace(p, y=~c(0, 0),
+                x=~c(0, max_original_replication),
+                name = "dotted line",
+                line = list(color = 'rgb(205, 12, 24)', width = 4, dash = 'dash'),
+                marker = list(size = 0.3, color = c("#66ffc2"),
+                              line = list(color = 'rgba(43, 62, 80, .8)', width = 3)))
     
     p=layout(p, title = 'Effect size',
              yaxis = list(title = 'Effect size Original', zeroline = FALSE),
