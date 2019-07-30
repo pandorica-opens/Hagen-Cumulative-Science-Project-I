@@ -134,12 +134,11 @@ ui<-navbarPage(
                color.background='#eef2f6'),
              # verbatimTextOutput("click"),
              verbatimTextOutput("brush"),
+             DT::dataTableOutput("table_plotting"),
              tags$head(tags$style("#click, #brush{color: #350B0B;
                                   font-size: 14px;
                                   font-style: italic;
                                   }"))
-             
-             #verbatimTextOutput("event")
              )
              ),
   
@@ -153,6 +152,7 @@ ui<-navbarPage(
              #DT::dataTableOutput("bruscheffect")
              
              verbatimTextOutput("brush_effect"),
+             DT::dataTableOutput("table_effect"),
              tags$head(tags$style("#brusheffect{color: #350B0B;
                                   font-size: 14px;
                                   font-style: italic;
@@ -169,7 +169,8 @@ ui<-navbarPage(
                div(plotlyOutput("original_studies_effect_size_output2"), align = 'center'), 
                type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6'), 
-             verbatimTextOutput("brush_original")
+             verbatimTextOutput("brush_original"),
+             DT::dataTableOutput("table_orig_effect")
            )
   ),
   
@@ -183,7 +184,7 @@ ui<-navbarPage(
                type=2, color='#2B3E50', size = 2,
                color.background='#eef2f6'), 
              verbatimTextOutput("brush_replicated"),
-             
+             DT::dataTableOutput("table_repl_effect"),
              
              tags$head(tags$style("#brush_replicated, #brush{color: #350B0B;
                                   font-size: 14px;
@@ -199,11 +200,7 @@ server <- function(input, output, session) {
   #link to the pre-registration is 0 -> so far we are not using it: new_etd <- etd[,c(6,7,8,1,2,3,4,5,9,10,11,12,13,14,15,16,17)]
   new_etd <- etd[,c(7,13,14,15,16,17,20,21,22,1,3)]
   #row.names(new_etd) <- study_numbers
-  #the same as just new_edt
-  # | | |
-  # ⇊ ⇊ ⇊
-  #new_edt <- as.data.frame(cbind.data.frame(study_numbers, new_etd))
-  #print(new_etd)
+  new_etd = cbind(id = study_numbers, new_etd)
   
   #filter: Remove duplicates and the added row with "...", and the chosen area of content
   filtered_content<- reactive({
@@ -227,13 +224,14 @@ server <- function(input, output, session) {
                extensions = c('FixedColumns','FixedHeader', 'Buttons', 'Responsive'),
                #rownames = TRUE,
                #rownames = study_numbers,
-               selection = 'none',
-               colnames=c("Study number","Links","N <br/>original", "p-value<br/>original", 
+               selection = 'multiple', 
+               #selection = 'none',
+               colnames=c("Study<br/>number","Links","N <br/>original", "p-value<br/>original", 
                           "Effect size<br/>original", "CI low<br/>original", "CI high<br/>original", 
                           "Effect size<br/>replication", "CI low<br/>replication",
                           "CI high <br/> replication",  "Title", "Authors"),
                class = 'compact nowrap row-border',
-               options = list(scrollX=TRUE, #scrollY="75vh",
+               options = list(#scrollX=TRUE, scrollY="75vh",
                               #autoWidth=TRUE,
                               paging=FALSE,
                               fixedHeader=TRUE,
@@ -272,8 +270,6 @@ server <- function(input, output, session) {
     
   })
   
-  #plot for Plotting tab panel is a bit wider
-  #check all plots for errors
   
   output$plotting_output3 <- renderPlotly({
     
@@ -309,118 +305,89 @@ server <- function(input, output, session) {
     print(p)
     
   })
-  #problem with plotting tab - size is not the same
+
   
-  
-  # output$event <- renderPrint({
-  #   d <- event_data("plotly_hover")
-  #   if (is.null(d)) "Hover on a point!" else d
-  # })
-  
-  #click response for Plotting tab panel
-  output$click <- renderPrint({
-    d <- event_data("plotly_click")
-    if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else 
+  #select/lasso response for Plotting tab panel
+  output$brush <- renderPrint({
+    d <- event_data("plotly_selected")
+    if (is.null(d)) 
     {
-      d = d[,c(2,3,4)]
-      names(d) <- c("Study Number","Effect size original","Effect size replication")
+      print("Click and drag events (i.e., select/lasso) appear here (double-click to clear) null")
+    }
+    else if (length(d)==0)
+    {print("Choose the area with points")}})
+  
+  #DT for Plotting tab
+  output$table_plotting = DT::renderDataTable({
+    d <- event_data("plotly_selected")
+    if (length(d)!=0) {
+    d <- d[c(1,3,4)]
+    names(d) <- c("Study Name","Effect size original","Effect size replication") #study number =2
+    d
+    }
+  })
+  
+  
+  #select/lasso response for Effect size tab panel
+  output$brush_effect <- renderPrint({
+    d2 <- event_data("plotly_selected")
+    if (is.null(d2)) 
+    {
+      print("Click and drag events (i.e., select/lasso) appear here (double-click to clear) null")
+    }
+    else if (length(d2)==0)
+    {print("Choose the area with points")}})
+  
+  output$table_effect = DT::renderDataTable({
+    d <- event_data("plotly_selected")
+    if (length(d)!=0) {
+      study_number = d[,c(3)]
+      d = as.data.table(c(etd[study_number,c(3, 15, 16, 17, 20, 21, 22)])) #study authors extra
+      names(d) <- c("Study Authors", "Effect size Original","CI low Original","CI high Original",
+                    "Effect size Replication", "CI low Replication", "CI high Replication")
       d
     }
   })
   
-  #click response for Replicated Studies Effect size tab panel
-  output$click_replicated_effect_size <- renderPrint({
-    d <- event_data("plotly_click")
-    if (is.null(d)) "Click events appear here (double-click on the empty plane to clear)" else
-    {
-      #get autors name here or in the plotly
-      d = d[,c(3,4)]
-      d <- append(d, etd[d[1,1],c("Authors")])
-      d <- as.data.frame(d)
-      #print(ncol(d))
-      if (ncol(d)==3)
-      {
-        names(d) <- c("Study Number",
-                      "Effect size replication",
-                      "Authors")
-        d
-      }
-    }
-  })
-  
-  #select/lasso response for Plotting tab panel
-  output$brush <- renderPrint({
-    an.error.occured <- FALSE
-    tryCatch( { 
-      d <- event_data("plotly_selected")
-      #print(d)
-      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
-      else 
-      {
-        d = d[,c(2,3,4)]
-        names(d) <- c("Study Number","Effect size original","Effect size replication")
-        print(d)
-      }}, error = function(e) {an.error.occured <<- TRUE})
-    
-    if (an.error.occured)
-    {print("Choose the area with points")}
-  })
-  
-  #select/lasso response for Effect size tab panel
-  output$brush_effect <- renderPrint({
-    an.error.occured <- FALSE
-    tryCatch( { 
-      d <- event_data("plotly_selected")
-      #print(d)
-      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
-      else 
-      {
-        study_number = d[,c(3)]
-        d = as.data.table(c(etd[study_number,c(15, 16, 17, 20, 21, 22)]))
-        #names(d) <- c("Study Number","Effect size original","Effect size replication")
-        print(d)
-      }}, error = function(e) {an.error.occured <<- TRUE})
-    
-    if (an.error.occured)
-    {print("Choose the area with points")}
-  })
-  
   #select/lasso response for Original studies tab panel
   output$brush_original <- renderPrint({
-    an.error.occured <- FALSE
-    tryCatch( { 
-      d <- event_data("plotly_selected")
-      #print(d)
-      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
-      else 
-      {
-        study_number = d[,c(3)]
-        d = as.data.table(c(etd[study_number,c(15, 16, 17)]))
-        #names(d) <- c("Study Number","Effect size original","Effect size replication")
-        print(d)
-      }}, error = function(e) {an.error.occured <<- TRUE})
-    
-    if (an.error.occured)
+    d3 <- event_data("plotly_selected")
+    if (is.null(d3)) 
+    {
+      print("Click and drag events (i.e., select/lasso) appear here (double-click to clear) null")
+    }
+    else if (length(d3)==0)
     {print("Choose the area with points")}
+    })
+  
+  output$table_orig_effect = DT::renderDataTable({
+    d <- event_data("plotly_selected")
+    if (length(d)!=0) {
+      study_number = d[,c(3)]
+      d = as.data.table(c(etd[study_number,c(15, 16, 17)]))
+      names(d) <- c("Effect size Original","CI low Original","CI high Original")
+      d
+    }
   })
   
   #select/lasso response for Replicated studies tab panel
   output$brush_replicated <- renderPrint({
-    an.error.occured <- FALSE
-    tryCatch( { 
-      d <- event_data("plotly_selected")
-      #print(d)
-      if (is.null(d)) print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)") 
-      else 
+      d4 <- event_data("plotly_selected")
+      if (is.null(d4)) 
       {
-        study_number = d[,c(3)]
-        d = as.data.table(c(etd[study_number,c(20, 21, 22)]))
-        #names(d) <- c("Study Number","Effect size original","Effect size replication")
-        print(d)
-      }}, error = function(e) {an.error.occured <<- TRUE})
-    
-    if (an.error.occured)
-    {print("Choose the area with points")}
+        print("Click and drag events (i.e., select/lasso) appear here (double-click to clear) null")
+      }
+      else if (length(d4)==0)
+      {print("Choose the area with points")}})
+  
+  output$table_repl_effect = DT::renderDataTable({
+    d <- event_data("plotly_selected")
+    if (length(d)!=0) {
+      study_number = d[,c(3)]
+      d = as.data.table(c(etd[study_number,c(20, 21, 22)]))
+      names(d) <- c("Effect size Replication", "CI low Replication", "CI high Replication")
+      d
+    }
   })
   
   
@@ -508,42 +475,6 @@ server <- function(input, output, session) {
     print(p)
     
   })
-  #profvis({
-  # output$original_studies_effect_size_output <- renderPlotly({
-  #   
-  #   p<-plot_ly(etd,
-  #              y=~c(low_original_effect_size, high_original_effect_size, original_effect_size),
-  #              x=~c(original_effect_size_y, original_effect_size_y, original_effect_size_y),
-  #              type="scatter",
-  #              mode='lines+markers',
-  #              marker = list(size = 12, 
-  #                            #opacity=0.9,
-  #                            color = c("#ccebff", "#ffcccc" , "#ccffeb"),
-  #                            line = list(color = 'rgba(43, 62, 80, .8)',
-  #                                        width = 3)),
-  #              #name = etd[,c("Authors")] ,
-  #              #name = ~c("low_original_effect_size", "high_original_effect_size", "original_effect_size"),
-  #              line = list(color = 'rgba(43, 62, 80, .8)', width = 2),
-  #              split=~c(original_effect_size_y,original_effect_size_y,original_effect_size_y),
-  #              width = 1200, height = 400)
-  #   
-  #   
-  #   p=layout(p, title = 'Original studies effect size',
-  #            xaxis = list( title = "Study number", zeroline = FALSE),
-  #            #height = 500,
-  #            yaxis = list(title = "Original studies effect size", zeroline = FALSE),
-  #            showlegend=F,
-  #            autosize = F
-  #   )
-  #   # # To use the author names as the axis labels.
-  #   # axis(2, at=1:length(original_effect_size), labels=etd[,c("Authors")], las=1)
-  #   
-  #   
-  #   #})
-  # })
-  
-  
-  
   
   # Plotting the replicated effect size
   output$replicated_studies_effect_size_output <- renderPlotly({
