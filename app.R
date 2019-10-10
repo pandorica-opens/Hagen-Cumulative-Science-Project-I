@@ -16,7 +16,7 @@ library(shinycssloaders)
 
 #load the dataset from the google sheets document
 url <- 'https://docs.google.com/spreadsheets/d/1VBnEGbanAt5yLXkpMGRGJWZeuw1TLNVudksgXyksHq0/edit?ts=5beae9fc#gid=0'
-#url <- 'https://docs.google.com/spreadsheets/d/1Li1ufThPTZNE_svGQtVlHb-5vQ9EiwX2pOTKvjxfd0E/edit?usp=sharing'
+#url <- 'https://docs.google.com/spreadsheets/d/1JnfckGVqBIDqg81zaGkre7t2jH5YsgbLmQp5nWUuWRk/edit?usp=sharing'
 
 etd <- as.data.frame(read.csv(text = gsheet2text(url, format = 'csv'), stringsAsFactors = FALSE))
 
@@ -149,8 +149,6 @@ ui<-navbarPage(
              width = 12,
              withSpinner(div(plotlyOutput("effect_size_output"), align = 'center'), type=2, color='#2B3E50', size = 2,
                          color.background='#eef2f6'),
-             #DT::dataTableOutput("bruscheffect")
-             
              verbatimTextOutput("brush_effect"),
              DT::dataTableOutput("table_effect"),
              tags$head(tags$style("#brusheffect{color: #350B0B;
@@ -321,9 +319,22 @@ server <- function(input, output, session) {
   output$table_plotting = DT::renderDataTable({
     d <- event_data("plotly_selected")
     if (length(d)!=0) {
-    d <- d[c(1,3,4)]
-    names(d) <- c("Study Name","Effect size original","Effect size replication") #study number =2
-    d
+    if (any(d[c(2)]))
+    {
+      d <- d[c(2,3,4)]
+      names(d) <- c("Study Number","Effect size original","Effect size replication") #study number =2
+      d
+    }
+    else
+    { 
+      d <- NULL
+      #all data what is transfered by this event!
+      # study number, lots of 0, study number +1, original OR replicated effect size, we are not 
+      # sure which one, choice is happening through the plot
+      # hence, when we are going from effect size to plotting tab, or from original/replicated studies
+      # it is always different
+      # maybe find the way to unselect or put a disclaimer
+    }
     }
   })
   
