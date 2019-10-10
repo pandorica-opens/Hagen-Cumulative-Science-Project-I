@@ -275,7 +275,7 @@ server <- function(input, output, session) {
                x = ~Effect.size.Original, 
                y = ~Effect.size.Replication,
                type="scatter",
-               name = "Replicated/orignal effect size",
+               name = "Effect sizes",
                mode='markers', marker = list(size = 20, color = ~c(original_effect_size_y),
                                              opacity = 0.7,
                                              line = list(color = 'rgba(152, 0, 0, .8)',width = 3)),
@@ -424,7 +424,7 @@ server <- function(input, output, session) {
       
       
       add_trace(y=~c(Effect.size.Replication),
-                x=~c(original_effect_size_y),
+                x=~c(original_effect_size_y)+0.1,
                 type = "scatter", mode = "markers+lines",
                 error_y = list(type = "data",
                                symmetric = FALSE,
