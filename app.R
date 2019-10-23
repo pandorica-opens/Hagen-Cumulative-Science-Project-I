@@ -310,7 +310,7 @@ server <- function(input, output, session) {
     d <- event_data("plotly_selected")
     if (is.null(d)) 
     {
-      print("Click and drag events (i.e., select/lasso) appear here (double-click to clear) null")
+      print("Click and drag events (i.e., select/lasso) appear here (double-click to clear)")
     }
     else if (length(d)==0)
     {print("Choose the area with points")}})
@@ -328,7 +328,7 @@ server <- function(input, output, session) {
     else
     { 
       d <- NULL
-      #all data what is transfered by this event!
+      #print "Click and drag events (i.e., select/lasso) appear here (double-click to clear)"
       # study number, lots of 0, study number +1, original OR replicated effect size, we are not 
       # sure which one, choice is happening through the plot
       # hence, when we are going from effect size to plotting tab, or from original/replicated studies
