@@ -14,9 +14,8 @@ library(plotly)
 library(profvis)
 library(shinycssloaders)
 
-#load the dataset from the google sheets document
+#load the test dataset from the google sheets document
 url <- 'https://docs.google.com/spreadsheets/d/1VBnEGbanAt5yLXkpMGRGJWZeuw1TLNVudksgXyksHq0/edit?ts=5beae9fc#gid=0'
-#url <- 'https://docs.google.com/spreadsheets/d/1JnfckGVqBIDqg81zaGkre7t2jH5YsgbLmQp5nWUuWRk/edit?usp=sharing'
 
 etd <- as.data.frame(read.csv(text = gsheet2text(url, format = 'csv'), stringsAsFactors = FALSE))
 
